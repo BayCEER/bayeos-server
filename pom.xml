@@ -1,0 +1,155 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
+	<artifactId>bayeos-server</artifactId>
+	<packaging>war</packaging>
+	<version>1.9.2-SNAPSHOT</version>
+	
+	<parent>
+		<groupId>de.unibayreuth.bayceer.bayeos</groupId>
+		<artifactId>bayeos-parent</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../bayeos-parent/pom.xml</relativePath>
+	</parent>
+	
+	<name>bayeos-server</name>
+	<url>http://www.bayceer.uni-bayreuth.de/bayeos</url>
+	<description>bayeos-server</description>
+	
+	
+	<properties>	
+	    <dbUrl>jdbc:postgresql://localhost:5432/bayeos</dbUrl>
+		<dbUser>bayeos</dbUser>
+		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>					 	 		
+		<publish.path>${publish.debian.path}</publish.path>					 
+	</properties>
+	
+	
+	<dependencies>
+		
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>				
+		<dependency>
+			<groupId>de.unibayreuth.bayceer.bayeos</groupId>
+			<artifactId>bayeos-xmlrpc</artifactId>
+			<version>1.9.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.novell.ldap</groupId>
+			<artifactId>jldap</artifactId>
+			<version>4.3</version>			
+		</dependency>
+		<dependency>
+			<groupId>postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.1-901.jdbc4</version>			
+		</dependency>
+										
+	</dependencies>
+
+
+	<build>
+	     <testResources>
+          <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>              
+          </testResource>                    
+      </testResources>
+		<finalName>BayEOS-Server</finalName>
+		<plugins>			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<nonFilteredFileExtensions>					
+						<nonFilteredFileExtension>jks</nonFilteredFileExtension>
+					</nonFilteredFileExtensions>
+					<webResources>
+						<resource>
+							<!-- this is relative to the pom.xml directory -->
+							<directory>conf</directory>
+							<filtering>true</filtering>
+							<includes>
+								<include>**/*.properties</include>
+								<include>/META-INF/context.xml</include>
+							</includes>
+							
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+
+						
+
+			<plugin>
+				<artifactId>jdeb</artifactId>
+				<groupId>org.vafer</groupId>
+				<version>1.1.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+						<configuration>
+							<deb>${project.build.directory}/${project.artifactId}-${project.version}.deb</deb>
+							<verbose>false</verbose>
+							<dataSet>
+								<data>
+									<src>${basedir}/src/deb/data</src>									
+									<type>directory</type>
+									<excludes>**/.svn/**</excludes>
+								</data>
+							
+								<data>
+									<src>${project.build.directory}/${project.build.finalName}.war</src>
+									<dst>BayEOS-Server.war</dst>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>										
+										<user>tomcat7</user>
+										<group>tomcat7</group>
+										<prefix>/var/lib/tomcat7/webapps</prefix>
+									</mapper>
+								</data>														
+							</dataSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<echo message="Copy to ${publish.path}" />																
+								<copy file="target/${project.name}-${project.version}.deb" todir="${publish.path}"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+		</plugins>
+
+	</build>
+	
+	
+
+</project>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/BayEOS-Server">   
+	<Resource name="jdbc/bayeos" auth="Container" type="javax.sql.DataSource"
+            url="jdbc:postgresql://192.168.56.102:5432/bayeos" 
+            driverClassName="org.postgresql.Driver" 
+            username="bayeos" password="bayeos"
+            maxActive="20" maxIdle="5" maxWait="10000"
+            poolPreparedStatements="true"
+            maxOpenPreparedStatements="100"
+            validationQuery="SELECT 1" />  
+</Context>

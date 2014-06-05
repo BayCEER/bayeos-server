@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+
+	
+	 	 
+	<changeSet author="oa" id="2" runOnChange="true" context="bug">
+		<comment>Bug: Schema name messungen entfernt.</comment>
+		<createProcedure>
+<![CDATA[	
+
+	 CREATE OR REPLACE FUNCTION get_child_objekte(_id integer, _id_art integer)
+  RETURNS SETOF objekt AS
+$BODY$select o.* from objekt o, (select * FROM connectby('objekt'::text, 'id'::text, 
+  'id_super'::text, $1::text, 0)  t(id integer, id_super integer, "level" integer)) as c
+ where o.id = c.id and level > 0 and o.id_art = $2 order by 2;$BODY$
+  LANGUAGE sql VOLATILE
+  COST 100
+  ROWS 1000;
+   ]]>
+		</createProcedure>
+	 </changeSet>
+	 <changeSet id="3" author="oa" context="DataFrame">
+	     <createTable tableName="data_frame">
+	         <column name="id" type="int">
+	             <constraints nullable="false"/>
+	         </column>
+	         <column name="bezeichnung" type="varchar(255)"/>	             
+	         <column name="timezone_id" type="int" defaultValue="1" >
+				<constraints nullable="false"/>
+			</column>	         
+	     </createTable>	     
+	     <addForeignKeyConstraint constraintName="fk_data_frame_objekt" 
+	         referencedTableName="objekt" baseColumnNames="id" baseTableName="data_frame" referencedColumnNames="id" onDelete="CASCADE"/>
+	     <addForeignKeyConstraint constraintName="fk_data_frame_timezone" 
+	         baseColumnNames="timezone_id" baseTableName="data_frame" referencedColumnNames="id" referencedTableName="timezone"  onDelete="CASCADE"/>
+	 </changeSet>
+	  <changeSet id="4" author="oa" context="DataFrame">
+	     <createTable tableName="data_column">
+	         <column name="id" type="int">
+	             <constraints nullable="false"/>
+	         </column>
+	         <column name="bezeichnung" type="varchar(255)"/>
+	         <column name="col_index" type="int" defaultValue="1">
+	            <constraints nullable="false"/>
+	         </column>				
+	         <column name="data_type" type="varchar(255)" defaultValue="STRING">
+	                <constraints nullable="false"/>
+	         </column>
+	     </createTable>
+	     <addUniqueConstraint tableName="data_column" columnNames="id"/>
+	     <addForeignKeyConstraint constraintName="fk_data_column_objekt" 
+	         referencedTableName="objekt" baseColumnNames="id" baseTableName="data_column" referencedColumnNames="id" onDelete="CASCADE"/>
+	     <sql><![CDATA[	         
+	         ALTER TABLE data_column ADD CONSTRAINT chk_data_column_type CHECK (data_type like 'STRING' OR data_type like 'INTEGER' OR data_type like 'BOOLEAN' OR data_type like 'DOUBLE' OR data_type like 'DATE' );
+	         ]]>
+	     </sql>
+	     <sql><![CDATA[
+	     ALTER TABLE data_column ADD CONSTRAINT chk_data_column_index CHECK (col_index>0);
+	         ]]>
+	     </sql>
+     </changeSet>	 
+	     <changeSet id="5" author="oa" context="DataValue">
+	     <createTable tableName="data_value">
+	         <column name="id" type="serial">
+	             <constraints nullable="false"/>
+	         </column>
+	         <column name="row_index" type="int">
+				<constraints nullable="false" />
+			 </column>	         			
+	         <column name="value" type="text">
+				<constraints nullable="true" />
+			 </column>			 
+	         <column name="data_column_id" type="int">
+				<constraints nullable="false" />
+			 </column>								          			
+	     </createTable>
+	     <sql><![CDATA[
+	     ALTER TABLE data_value ADD CONSTRAINT chk_data_value_index CHECK (row_index>0);
+	         ]]>
+	     </sql>	     
+	     <addForeignKeyConstraint constraintName="fk_data_value_column" 
+	         referencedTableName="data_column" baseColumnNames="data_column_id" baseTableName="data_value" referencedColumnNames="id" onDelete="CASCADE"/>
+	  </changeSet>    
+	  <changeSet id="6" author="oa"  context="DataFrame">
+	      <createView viewName="v_data_frame">
+	          select o.*, d.bezeichnung, d.timezone_id from objekt o , data_frame d where o.id = d.id;  
+	      </createView>	      	      
+	  </changeSet>
+	  <changeSet id="7" author="oa"  context="DataFrame">
+	      <createView viewName="v_data_column">
+	          select o.*, d.bezeichnung, d.col_index, d.data_type from objekt o , data_column d where o.id = d.id;  
+	      </createView>	      	      
+	  </changeSet>	  	  
+	  
+	  <changeSet id="8" author="oa" runOnChange="true">
+	      <createProcedure>
+		<![CDATA[	
+	      	CREATE or replace FUNCTION create_objekt_art(_uname text, _de text, _en text, _kurz text, _detail_table text) RETURNS int  AS
+			$BODY$
+			declare
+			rec record;
+			ret record;
+			begin
+			select into rec nextval('objekt_id')::int4 as id_art;
+			insert into art_objekt (id, uname, de, en, kurz, detail_table) values (rec.id_art, _uname, _de, _en, _kurz, _detail_table);
+			select into ret create_objekt_by_name(get_userid(),null, _uname, _de, _en) as id;
+			return rec.id_art;  
+			end
+			$BODY$
+			LANGUAGE plpgsql;
+	       ]]>
+	       </createProcedure>	      	      
+	  </changeSet>
+	  <changeSet id="9" author="oa" context="DataFrame">
+	      <sql>select set_user('root');</sql>	          	      
+	      <sql>select create_objekt_art('data_frame','Data Frame','Data Frame','DataFrame','data_frame');</sql>	      
+	  </changeSet>
+	  <changeSet id="10" author="oa" context="DataFrame">
+	      <sql>select set_user('root');</sql>
+	      <sql>select create_objekt_art('data_column','Data Column','Data Column','DataColumn','data_column');</sql>	      
+	  </changeSet>
+	  	  	  	  
+	   <changeSet id="11" author="oa"  context="DataFrame">
+	   	  <addColumn tableName="data_frame"><column name="beschreibung" type="text"></column></addColumn>	   	  	      	      
+	  </changeSet>
+	  
+	  <changeSet id="12" author="oa"  context="DataFrame">
+	  <dropView viewName="v_data_frame"/>
+	      <createView viewName="v_data_frame">
+	          select vo.*,d.bezeichnung,d.beschreibung,d.timezone_id from v_objekt vo , data_frame d where vo.id = d.id;  
+	      </createView>
+	   </changeSet>
+	    <changeSet id="13" author="oa"  context="DataFrame">
+	      <addColumn tableName="data_column"><column name="beschreibung" type="text"></column></addColumn>
+	      </changeSet>  
+	  
+	   <changeSet id="14" author="oa"  context="DataFrame">	  	
+	  	  <dropView viewName="v_data_column"/>
+	      <createView viewName="v_data_column">
+	          select vo.*,d.bezeichnung,d.beschreibung,d.col_index,d.data_type from v_objekt vo , data_column d where vo.id = d.id;  
+	      </createView>	      	      
+	  </changeSet>
+	  	  
+	  <changeSet id="99" author="oa">
+	  <update tableName="sys_variablen"><column name="value">1.9.0</column><where>name like 'version'</where></update>
+	  </changeSet>
+	  
+	  	<changeSet id="100" author="sh" context="Objekt Baum Functions">
+		<createProcedure>
+		<![CDATA[
+	  create or replace Function get_objekt_baum(_id integer,_path text, _max_depth int,_active boolean,_von timestamptz, _bis timestamptz) 
+returns setof objekt_baum as
+$$
+declare
+  rec1 record;
+  rec2 record;
+begin
+  for rec1 in select 
+  o.id,o.id_super,o.id_art,o.plan_start,o.plan_end,o.rec_start,o.rec_end,
+  case when o.de is null or o.de='' then o.en else o.de end::text as name,
+  _path::text as path,
+  ao.uname::text as art
+  from messungen.objekt o, messungen.art_objekt ao 
+  where ao.id=o.id_art and o.id_super=_id
+	and (not _active or isactive(o.plan_start,o.plan_end))
+	and ((o.rec_start,o.rec_end) overlaps 
+	(case when _von is null then o.rec_start else _von end,case when _bis is null then o.rec_end else _bis end)
+		or (_von is null and _bis is null))
+   order by o.de loop
+    return next rec1;
+    if rec1.art not in ('messung','messung_massendaten','messung_labordaten','data_column') and _max_depth!=0 then
+      for rec2 in select * from get_objekt_baum(rec1.id,_path||replace(rec1.name,'/',E'\\/')||'/',_max_depth-1,_active,_von,_bis) loop
+	return next rec2;
+      end loop;
+    end if;
+  end loop;
+  return;
+end
+$$ language plpgsql;
+
+create or replace Function get_objekt_baum(_id integer,_id_benutzer int,_path text, _max_depth int,_active boolean,_von timestamptz, _bis timestamptz) 
+returns setof objekt_baum as
+$$
+declare
+  rec1 record;
+  rec2 record;
+begin
+  for rec1 in select 
+  o.id,o.id_super,o.id_art,o.plan_start,o.plan_end,o.rec_start,o.rec_end,
+  case when o.de is null or o.de='' then o.en else o.de end::text as name,
+  _path::text as path,
+  ao.uname::text as art
+  from objekt o, art_objekt ao 
+  where ao.id=o.id_art and o.id_super=_id and check_read(o.id,_id_benutzer)
+	and (not _active or isactive(o.plan_start,o.plan_end))
+	and ((o.rec_start,o.rec_end) overlaps 
+	(case when _von is null then o.rec_start else _von end,case when _bis is null then o.rec_end else _bis end)
+		or (_von is null and _bis is null))
+        order by o.de loop
+    return next rec1;
+    if rec1.art not in ('messung','messung_massendaten','messung_labordaten','data_column') and _max_depth!=0 then
+      for rec2 in select * from get_objekt_baum(rec1.id,_id_benutzer,_path||replace(rec1.name,'/',E'\\/')||'/',_max_depth-1,_active,_von,_bis) loop
+	return next rec2;
+      end loop;
+    end if;
+  end loop;
+  return;
+end
+$$ language plpgsql;
+
+	 ]]>	 
+	</createProcedure>
+	</changeSet>
+	
+	<changeSet id="101" author="oa" context="BUG#13">
+	<comment>Grant default role to all new created users</comment>
+	<createProcedure>
+	<![CDATA[
+	CREATE OR REPLACE FUNCTION create_user(_id_benutzer integer, _login character varying, _pw character varying, _name character varying, _authmethod character varying, _authname character varying) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$declare
+rec record;
+rec_auth record;
+begin
+
+if (_authMethod = 'DB') then
+ select into rec_auth id from auth_db where name like _authName;
+ if (not FOUND) then 
+	raise exception 'Database authentication method:% not found.',_authName;
+ end if;
+elsif (_authMethod = 'LDAP') then
+ select into rec_auth id from auth_ldap where name like _authName;
+ if (not FOUND) then 
+	raise exception 'LDAP authentication method:% not found.',_authName;
+ end if;
+else 
+ raise exception 'Authentication method:% not supported. Must be DB or LDAP',_authMethod;	
+end if;
+
+select into rec create_objekt(_id_benutzer,null,100002,_name,_name);
+if rec.create_objekt>0
+then
+	if (_authMethod = 'DB') then
+	 insert into benutzer(id,login,pw,fk_auth_db) values (rec.create_objekt,_login,crypt(_pw,gen_salt('des')),rec_auth.id);
+	else 
+	 insert into benutzer(id,login,pw,fk_auth_ldap) values (rec.create_objekt,_login,crypt(_pw,gen_salt('des')),rec_auth.id);
+	end if;	 
+end if;
+
+-- Try to grant default role to new user --
+begin
+	perform grant_role(_login, 'All Users');
+	exception when raise_exception then
+end;  
+
+return rec.create_objekt;
+end; $$;
+	
+	]]>		
+	</createProcedure>
+	</changeSet>
+	
+	<changeSet id="102" author="oa" context="BUG#15">	
+	<sql>
+	DROP FUNCTION IF EXISTS create_session(character varying, character);
+	DROP FUNCTION IF EXISTS create_session(integer);
+	DROP FUNCTION IF EXISTS terminate_session(integer);
+	DROP FUNCTION IF EXISTS terminate_session(integer, integer);
+	DROP FUNCTION IF EXISTS terminate_session(character varying, character, integer);	
+	DROP INDEX IF EXISTS session_key;
+	</sql>	
+	<createIndex tableName="session" indexName="session_key"><column name="key"></column></createIndex>		
+	</changeSet>
+    <changeSet id="103" author="oa" context="MD5">
+	<sql>update auth_db set password = '4336bc9de7a6b11940e897ee22956d51' where name = 'LOCAL' and username = 'bayeos';</sql>
+	</changeSet>
+	
+	<changeSet id="104" author="oa" context="BUG#64">
+	<sql>
+	 DROP FUNCTION IF EXISTS upsert_massendaten(_id integer, _von timestamp with time zone, _status smallint, _wert real);
+	 </sql>
+	</changeSet>
+	
+	<changeSet id="105" author="oa">
+	  <update tableName="sys_variablen"><column name="value">1.9.1</column><where>name like 'version'</where></update>
+	  </changeSet>
+</databaseChangeLog>

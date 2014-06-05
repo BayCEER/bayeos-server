@@ -1,0 +1,8 @@
+Package: [[name]]
+Version: [[version]]
+Section: server
+Priority: optional
+Architecture: all
+Depends: postgresql (>= 9.0),  postgresql-contrib, postgresql-plperl, java7-runtime-headless, tomcat7, apache2, libapache2-mod-jk, libpq-dev
+Description: BayEOS Server a lightweight observation database
+Maintainer: oliver.archner@uni-bayreuth.de
