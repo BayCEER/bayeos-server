@@ -285,5 +285,60 @@ end; $$;
 	
 	<changeSet id="105" author="oa">
 	  <update tableName="sys_variablen"><column name="value">1.9.1</column><where>name like 'version'</where></update>
-	  </changeSet>
+	 </changeSet>
+	
+	<changeSet id="106" author="oa">
+	<comment>BugFix #1: Arch_his not working</comment>
+	<createProcedure>
+	<![CDATA[
+	CREATE OR REPLACE FUNCTION arch_his()
+  RETURNS boolean AS
+$BODY$declare
+ rec record;
+ bol bool;
+ path text;
+ begin  
+    select into path value from bayeos.sys_variablen where name like 'arch_path';
+    if not found then
+     raise exception 'Archivierungspfad nicht in sys_variablen gefunden.';
+    end if;
+
+    for rec in select tablename from pg_tables where tablename like 'his_%' 
+    loop
+      select into bol bayeos.arch_his_tab(rec.tablename, path);
+    end loop;
+  return(true);
+ end;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+	]]>		
+	</createProcedure>	
+	<createProcedure>
+	<![CDATA[
+	CREATE OR REPLACE FUNCTION arch_his_tab(text, text)
+  RETURNS boolean AS
+$BODY$declare
+ seq int4;
+ filename text;
+ filepath text;
+ begin
+    select into seq nextval('bayeos.' || $1 || '_id');    
+    filename :=  $1 || '_' || seq || '.cp';
+    filepath := $2 || '/' || filename ;
+    raise notice 'Archiviere % nach %.',$1, filepath;  
+    execute 'copy bayeos.' || $1 || ' to ' || quote_literal(filepath) ;
+    execute 'insert into bayeos.arch_his_log (name,min_id,max_id,min_datum,max_datum,counts)  ' ||
+    'select ' || quote_literal(filename) || ', min(his_id) ,max(his_id), min(his_datum), max(his_datum), count(*) from bayeos.' || $1;  
+    execute 'delete from bayeos.' || $1 || ' where his_id < ' || seq;
+    return(true);
+ end;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+	]]>		
+	</createProcedure>	
+	<update tableName="sys_variablen"><column name="value">/var/lib/postgresql</column><where>name like 'arch_path'</where></update>
+	</changeSet>
+	 	  
 </databaseChangeLog>
