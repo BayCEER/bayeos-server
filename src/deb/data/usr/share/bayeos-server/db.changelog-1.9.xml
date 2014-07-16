@@ -340,5 +340,34 @@ $BODY$
 	</createProcedure>	
 	<update tableName="sys_variablen"><column name="value">/var/lib/postgresql</column><where>name like 'arch_path'</where></update>
 	</changeSet>
+	
+	<changeSet id="107" author="oa">
+	    <sql>
+	        CREATE TABLE preference
+			(
+   				id serial, 
+   				application text NOT NULL, 
+   				key text NOT NULL, 
+   				value text NOT NULL, 
+   				user_id integer NOT NULL, 
+   				CONSTRAINT pk_preferences PRIMARY KEY (id), 
+   				CONSTRAINT fk_preferences_user_id FOREIGN KEY (user_id) REFERENCES benutzer (id) ON DELETE CASCADE
+			); 
+
+			COMMENT ON TABLE preference
+  			IS 'Preferences as key value pairs for user and application';
+
+  			CREATE UNIQUE INDEX idx_preference_app_user
+			ON preference (application, user_id);
+  				
+  			        	        
+	    </sql>
+	    
+	</changeSet>
+	
+	
+	<changeSet id="108" author="oa">
+	  <update tableName="sys_variablen"><column name="value">1.9.2</column><where>name like 'version'</where></update>
+	</changeSet>
 	 	  
 </databaseChangeLog>

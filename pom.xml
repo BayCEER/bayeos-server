@@ -5,7 +5,7 @@
 	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 	<artifactId>bayeos-server</artifactId>
 	<packaging>war</packaging>
-	<version>1.9.2</version>
+	<version>1.9.3</version>
 	
 	<parent>
 		<groupId>de.unibayreuth.bayceer.bayeos</groupId>
@@ -20,7 +20,7 @@
 	
 	
 	<properties>	
-	    <dbUrl>jdbc:postgresql://localhost:5432/bayeos</dbUrl>
+	    <dbUrl>jdbc:postgresql://localhost/bayeos</dbUrl>
 		<dbUser>bayeos</dbUser>
 		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>					 	 		
 		<publish.path>${publish.debian.path}</publish.path>					 
@@ -31,14 +31,14 @@
 		
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>3.0.1</version>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
 			<scope>provided</scope>
 		</dependency>				
 		<dependency>
 			<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 			<artifactId>bayeos-xmlrpc</artifactId>
-			<version>1.9.1</version>
+			<version>1.9.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.novell.ldap</groupId>
@@ -114,9 +114,9 @@
 									<type>file</type>
 									<mapper>
 										<type>perm</type>										
-										<user>tomcat7</user>
-										<group>tomcat7</group>
-										<prefix>/var/lib/tomcat7/webapps</prefix>
+										<user>tomcat6</user>
+										<group>tomcat6</group>
+										<prefix>/var/lib/tomcat6/webapps</prefix>
 									</mapper>
 								</data>														
 							</dataSet>

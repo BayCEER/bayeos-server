@@ -15,6 +15,8 @@ package de.unibayreuth.bayceer.bayeos.xmlrpc.handler;
  * Created on 28. August 2002, 13:47
  */
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Vector;
@@ -22,6 +24,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
 
+import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.SelectUtils;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IMessungHandler;
 
@@ -119,6 +122,51 @@ public String getTimeZone(Integer Id) throws XmlRpcException {
 		       logger.error(e.getMessage());
 		       throw new XmlRpcException(1,e.getMessage());
 		  }
+}
+
+
+
+
+
+
+
+@Override
+public Boolean refreshRecInterval(Integer id) throws XmlRpcException {
+	
+	if (id == null){
+		throw new XmlRpcException(0, "Invalid argument");
+	}
+	
+	if (logger.isDebugEnabled()){
+		logger.debug("refreshRecInterval(" + id + ")");		
+	}
+		
+	Connection con = null;		
+	try {
+		con = ConnectionPool.getPooledConnection();
+		PreparedStatement pstm = con.prepareStatement("WITH rec AS (select min(von) as min, max(von) as max from massendaten where id = ? union " + 
+	     "select CASE WHEN min(von) <  min(bis) THEN min(von) ELSE min(bis) END as min," +
+	     "CASE WHEN max(von) > max(bis) THEN max(von) ELSE max(bis) END as max from labordaten where id = ?) " +   
+	     "update objekt set rec_start = rec.min, rec_end = rec.max from rec where id = ?");		
+		pstm.setInt(1, id);
+		pstm.setInt(2, id);
+		pstm.setInt(3, id);
+		pstm.execute();
+		pstm.close();		
+		return true;		
+	} catch (SQLException e) {
+		logger.error(e.getMessage());
+		return false;
+	} finally {
+		try {
+			con.close();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+	}
+	
+	
+	
 }
    
    
