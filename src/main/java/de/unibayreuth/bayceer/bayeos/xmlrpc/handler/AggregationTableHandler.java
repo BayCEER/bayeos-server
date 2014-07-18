@@ -96,11 +96,11 @@ public class AggregationTableHandler extends AccessHandler implements  IAggregat
         }
         pst = con.prepareStatement(query);
         pst.setInt(1, primaryKey.intValue());
-        java.sql.Date sqlVonDate =  new java.sql.Date(tFilter.getVon().getTime());
-        pst.setDate(2,sqlVonDate);
+        java.sql.Timestamp sqlVonDate =  new java.sql.Timestamp(tFilter.getVon().getTime());
+        pst.setTimestamp(2,sqlVonDate);
         
-        java.sql.Date sqlBisDate =  new java.sql.Date(tFilter.getBis().getTime());
-        pst.setDate(3,sqlBisDate);
+        java.sql.Timestamp sqlBisDate =  new java.sql.Timestamp(tFilter.getBis().getTime());
+        pst.setTimestamp(3,sqlBisDate);
 
         rs = pst.executeQuery();
         vReturn = new Vector();

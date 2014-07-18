@@ -7280,7 +7280,12 @@ REVOKE ALL ON TABLE stati FROM bayeos;
 GRANT ALL ON TABLE stati TO bayeos;
 
 -- Grant default role access to all root nodes
-insert into zugriff SELECT id,200003,true,false,false,false from objekt where de ilike 'All %';
+-- Folder without inherit 
+insert into zugriff SELECT id,200003,true,false,false,false from objekt where de ilike 'All Folders';
+
+-- All other metadata with inherit 
+insert into zugriff SELECT id,200003,true,false,false,true from objekt where de in ('All Users','All Devices','All Compartiments','All Locations','All Targets','All Units');
+
 
 --
 -- PostgreSQL database dump complete

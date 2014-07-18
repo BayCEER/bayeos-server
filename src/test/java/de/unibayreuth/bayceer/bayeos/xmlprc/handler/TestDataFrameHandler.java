@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Vector;
 
+
 import org.apache.xmlrpc.XmlRpcException;
 import org.junit.Test;
 
@@ -413,6 +414,24 @@ public class TestDataFrameHandler extends AbstractClientTest{
 			assertEquals("X", row.get(1));
 			row = (Vector) val.get(1);
 			assertEquals("Z", row.get(1));
+			
+			
+			// Update with null value			
+			rowIndex = new Vector();
+			rowIndex.add(5);
+			values = new Vector();
+			values.add(null);
+			assertTrue((Boolean) cli.execute("DataFrameHandler.updateColValues", a.getId(),rowIndex,values));
+			
+			
+			Vector v = new Vector();
+			Vector r = new Vector();
+			r.add(a.getId());
+			v.add(r);
+			
+			Integer va =  (Integer) cli.execute("DataFrameHandler.getMaxRowIndex", v);				
+		    assertEquals(4, va.intValue());
+		     
 			
 			
 		} catch (Exception e){

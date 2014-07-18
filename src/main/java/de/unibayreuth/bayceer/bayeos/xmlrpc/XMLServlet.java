@@ -38,6 +38,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.MessungHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.ObjektArtHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.ObjektHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.OctetMatrixHandler;
+import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.PreferenceHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.RightHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.ToolsHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.TreeHandler;
@@ -94,6 +95,7 @@ public class XMLServlet extends HttpServlet {
 		xmlRpcServer.addHandler("ToolsHandler", new ToolsHandler());
 		xmlRpcServer.addHandler("MessungHandler", new MessungHandler());
 		xmlRpcServer.addHandler("DataFrameHandler", new DataFrameHandler());
+		xmlRpcServer.addHandler("PreferenceHandler", new PreferenceHandler());
 		
 		
 		// OctetServer

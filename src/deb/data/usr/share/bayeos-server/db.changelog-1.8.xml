@@ -227,26 +227,25 @@ $$ language plpgsql;
 		</createProcedure>
 	</changeSet>
 
-	<changeSet id="6" author="sh">
-
+	<changeSet id="6" author="sh" runOnChange="true" >
 		<createProcedure>
  <![CDATA[
 create or replace function escape_path_separator(text) returns text as
 $$
 select replace(replace($1,E'\\slash',E'\\\\slash'),E'\\/',E'\\slash');
-$$ language 'SQL';
+$$ language 'sql';
 ]]>
 		</createProcedure>
 	</changeSet>
 
-	<changeSet id="7" author="sh">
+	<changeSet id="7" author="sh"  runOnChange="true">
 		<createProcedure>
 <![CDATA[
 create or replace function ant_to_regexp(text) returns text as
 $$
 select regexp_replace(replace('./'||regexp_replace(escape_path_separator($1),E'([\\^\\$\\(\\)\\[\\]\\{\\}\\.\\\\\\?\\+])',
 E'\\\\\\1','g'),'**','.*'),E'([^\\.])\\*',E'\\1[^/]*','g');
-$$ language 'SQL';
+$$ language 'sql';
 ]]>
 		</createProcedure>
 	</changeSet>
@@ -656,14 +655,14 @@ $BODY$
  ]]>
 	</createProcedure>
 	</changeSet>
-	<changeSet id="31" author="sh">
+	<changeSet id="31" author="sh"  runOnChange="true">
 	<createProcedure>
 	<![CDATA[
 	create or replace function ant_to_regexp(text) returns text as
 $$
 select regexp_replace(replace(replace(E'^\\./'||regexp_replace(escape_path_separator($1),E'([\\^\\$\\(\\)\\[\\]\\{\\}\\.\\\\\\?\\+])',
 E'\\\\\\1','g'),'**/','(.*/|)'),'**','.*'),E'([^\\.])\\*',E'\\1[^/]*','g')||'$';
-$$ language 'SQL'; 
+$$ language 'sql'; 
 ]]> 
 	</createProcedure>
 	</changeSet>
