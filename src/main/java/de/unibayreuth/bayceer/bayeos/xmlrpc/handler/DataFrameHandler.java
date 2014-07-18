@@ -52,68 +52,72 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 			throw new XmlRpcException(1, "Invalid values argument");
 		
 		Connection con = null;
-		PreparedStatement pstmt = null;
-
-		if (!checkWrite(colId)) {
-			throw new XmlRpcException(1, "Missing rights on Objekt " + colId
-					+ ".");
-		}
+		PreparedStatement istmt = null;
+		PreparedStatement dstmt = null;
 		
 
-		try {
-			
+		if (!checkWrite(colId)) {
+			throw new XmlRpcException(1, "Missing rights on Objekt " + colId + ".");
+		}
+		
+		try {			
 			DataType dataType = getDataType(colId);
 			con = getPooledConnection();
-			pstmt = con.prepareStatement("insert into data_value(data_column_id, row_index, value) values (?,?,?::text)");
-			pstmt.setInt(1, colId);
-			for (int i = 0; i < values.size(); i++) {
-				pstmt.setInt(2, i + 1);
-				switch (dataType) {
-				case STRING:
-					pstmt.setString(3, (String) values.get(i));
-					break;
-				case BOOLEAN:
-					pstmt.setBoolean(3, (Boolean) values.get(i));
-					break;
-				case DATE:
-					pstmt.setTimestamp(3,new java.sql.Timestamp(((Date) values.get(i)).getTime()));
-					break;
-				case DOUBLE:
-					pstmt.setDouble(3, (Double) values.get(i));
-					break;
-				case INTEGER:
-					pstmt.setDouble(3, (Integer) values.get(i));
-					break;
-				default:
-					throw new XmlRpcException(0, "Data type not supported");
-				}
-				pstmt.addBatch();
-				if (i % batchSize == 0) { pstmt.executeBatch(); }
-				
-			}
-			pstmt.executeBatch();
-			pstmt.close();
-
-			logger.debug("Finished insert of data frame column");
+			con.setAutoCommit(false);			
+			istmt = con.prepareStatement("insert into data_value(data_column_id, row_index, value) values (?,?,?::text)");			
+			istmt.setInt(1, colId);
+			
+			
+			int is = 0;
+			for (int i = 0; i < values.size(); i++) {								
+				if (values.get(i)!=null){
+					istmt.setInt(2,i+1);
+					switch (dataType) {
+					case STRING:
+						istmt.setString(3, (String) values.get(i));
+						break;
+					case BOOLEAN:
+						istmt.setBoolean(3, (Boolean) values.get(i));
+						break;
+					case DATE:
+						istmt.setTimestamp(3, new java.sql.Timestamp(((Date) values.get(i)).getTime()));
+						break;
+					case DOUBLE:
+						istmt.setDouble(3, (Double) values.get(i));
+						break;
+					case INTEGER:
+						istmt.setDouble(3, (Integer) values.get(i));
+						break;
+					default:
+						con.rollback();
+						throw new XmlRpcException(0,"Data type not supported");
+					}					
+					istmt.addBatch();					
+					if (++is % batchSize == 0) { istmt.executeBatch(); }
+					
+				} 						
+			}			
+			istmt.executeBatch();			
+			istmt.close();	
+			con.commit();
+			logger.debug("Finished insert of data frame column");												
 			return true;
-		} catch (SQLException e) {
-			logger.error(e.getMessage());
+		} catch (SQLException e) {						
+			logger.error(e.getMessage());			
+			if (con != null){				
+				try {
+					con.rollback();
+				} catch (SQLException e1) {
+					logger.error(e1.getMessage());
+				}
+			}
 			return false;
-		} finally {
+		} finally {			
 			try {
-				if (pstmt != null)
-					pstmt.close();
+				if (con != null) con.close();
 			} catch (SQLException e) {
 				logger.error(e);
-			}
-			;
-			try {
-				if (con != null)
-					con.close();
-			} catch (SQLException e) {
-				logger.error(e);
-			}
-			;
+			}			
 		}
 	}
 	
@@ -154,7 +158,6 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 				}
 			;
 		}
-
 	}
 	
 	
@@ -191,87 +194,84 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 		}
 						
 		Connection con = null;
-		PreparedStatement pInsert = null;
-		PreparedStatement pUpdate = null;
+		
 		
 	    try{
 			con = getPooledConnection();
-			pInsert = con.prepareStatement("insert into data_value (value, data_column_id,row_index) values (?::text,?,?)");			
-			pUpdate = con.prepareStatement("update data_value set value = ?::text where data_column_id = ? and row_index = ?");
+			con.setAutoCommit(false);
+			PreparedStatement pIns = con.prepareStatement("insert into data_value (data_column_id,row_index,value) values (?,?,?::text)");
+			pIns.setInt(1, colId);
+			PreparedStatement pDel = con.prepareStatement("delete from data_value where data_column_id = ? and row_index = ?");
+			pDel.setInt(1, colId);
 				
-			pInsert.setInt(2, colId);
-			pUpdate.setInt(2, colId);	
 			
-			for(int i=0;i<rowIndexes.size();i++){				 
+			// Delete	
+			int ds = 0;
+			for(int i=0;i<rowIndexes.size();i++){
+				pDel.setInt(2, (int) rowIndexes.get(i));				
+				pDel.addBatch();
+				if ((++ds)% batchSize==0) pDel.executeBatch();
+			}
+			if (ds>0) pDel.executeBatch();
+			pDel.close();			
+			logger.debug(ds + " data values deleted for column:" + colId);									
+			
+			// Insert
+			int is=0;
+			for(int i=0;i<rowIndexes.size();i++){
+				if (values.get(i)!=null){
+					pIns.setInt(2, (int) rowIndexes.get(i));
 					DataType dataType = getDataType(colId);
 					switch (dataType) {
 					case STRING:
 						String v = (String) values.get(i);
-						pInsert.setString(1,v);
-						pUpdate.setString(1,v);
+						pIns.setString(3, v);
 						break;
 					case BOOLEAN:
 						Boolean b = (Boolean) values.get(i);
-						pInsert.setBoolean(1, b);
-						pUpdate.setBoolean(1, b);
+						pIns.setBoolean(3, b);
 						break;
 					case DATE:
 						Timestamp t = new java.sql.Timestamp(((Date) values.get(i)).getTime());
-						pInsert.setTimestamp(1,t);
-						pUpdate.setTimestamp(1,t);
+						pIns.setTimestamp(3, t);
 						break;
 					case DOUBLE:
 						Double d = (Double) values.get(i);
-						pInsert.setDouble(1,d);
-						pUpdate.setDouble(1,d);
+						pIns.setDouble(3, d);
 						break;
 					case INTEGER:
 						Integer I = (Integer) values.get(i);
-						pInsert.setDouble(1,I);
-						pUpdate.setDouble(1,I);
+						pIns.setDouble(3, I);
 						break;
 					default:
+						con.rollback();
 						throw new XmlRpcException(0, "Data type not supported");
-					}
-					
-								
-					pInsert.setInt(3, (int) rowIndexes.get(i));
-					pUpdate.setInt(3, (int) rowIndexes.get(i));
-					
-					int rows = pUpdate.executeUpdate();					
-					if (rows == 0){						
-						pInsert.execute();
-					}					
-				
+					}																		
+					pIns.addBatch();
+					if (++is%batchSize==0) pIns.executeBatch();
+				}
 			}
+			if (is>0) pIns.executeBatch();		
+			pIns.close();
+			logger.debug(is + " data values inserted for column:" + colId);
+			con.commit();
 			
-			
-			
-			
-				
 	   } catch (SQLException e) {
-			logger.error(e.getMessage());
-			 return false;
-		} finally {
-			try {
-				if (pInsert != null)	pInsert.close();
-			} catch (SQLException e) {	
-				logger.error(e);
-			};
-			try {
-				if (pUpdate != null)	pUpdate.close();
-			} catch (SQLException e) {	
-				logger.error(e);
-			};
-			
+		   if (con!=null){
+			   try {
+				con.rollback();
+			} catch (SQLException e1) {
+				logger.error(e1.getMessage());
+			}
+		   }			
+		  return false;
+		} finally {			
 			try {
 				if (con != null) con.close();
 			} catch (SQLException e) {
 				logger.error(e);
-			}
-			;		
+			}		
 		}
-		
 		return true;
 	}
 
