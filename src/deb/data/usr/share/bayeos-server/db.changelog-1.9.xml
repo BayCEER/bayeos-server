@@ -366,8 +366,8 @@ $BODY$
 	</changeSet>
 	
 	
-	<changeSet id="108" author="oa">
-	  <update tableName="sys_variablen"><column name="value">1.9.2</column><where>name like 'version'</where></update>
+	<changeSet id="108" author="oa" runOnChange="true">
+	  <update tableName="sys_variablen"><column name="value">1.9.3</column><where>name like 'version'</where></update>
 	</changeSet>
 	 	  
 </databaseChangeLog>
