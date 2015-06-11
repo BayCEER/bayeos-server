@@ -19,9 +19,24 @@ public class TestPreferenceHandler  extends AbstractClientTest{
 		assertTrue((boolean) cli.execute("PreferenceHandler.setPreference","MyApplication","MyKey",null ));		
 		map = (Hashtable<String, String>) cli.execute("PreferenceHandler.getPreferences", "MyApplication");		
 		assertEquals(0, map.size());
-		
-		
-		
+						
 	}
+	
+	@Test
+	public void testTwoPrefs() throws XmlRpcException {
+		assertTrue((boolean) cli.execute("PreferenceHandler.setPreference","MyApplication","Key1","Value1" ));		
+		assertTrue((boolean) cli.execute("PreferenceHandler.setPreference","MyApplication","Key2","Value2" ));
+		
+		Hashtable<String, String> map = (Hashtable<String, String>) cli.execute("PreferenceHandler.getPreferences", "MyApplication");
+		assertEquals("Value1", map.get("Key1"));
+		assertEquals("Value2", map.get("Key2"));
+		
+		assertTrue((boolean) cli.execute("PreferenceHandler.deletePreferences","MyApplication"));
+		
+		map = (Hashtable<String, String>) cli.execute("PreferenceHandler.getPreferences", "MyApplication");
+		assertEquals(0, map.size());		
+	}
+	
+	
 
 }

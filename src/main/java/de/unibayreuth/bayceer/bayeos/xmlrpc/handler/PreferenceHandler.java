@@ -18,8 +18,7 @@ public class PreferenceHandler extends AccessHandler implements
 	final static Logger log = Logger.getLogger(PreferenceHandler.class);
 
 	@Override
-	public Hashtable<String, String> getPreferences(String application)
-			throws XmlRpcException {
+	public Hashtable<String, String> getPreferences(String application)	throws XmlRpcException {
 
 		log.debug("getPreferences for " + application + " and user "
 				+ getUserId());
@@ -109,6 +108,34 @@ public class PreferenceHandler extends AccessHandler implements
 			}
 		}
 
+		return true;
+	}
+
+	@Override
+	public Boolean deletePreferences(String application) throws XmlRpcException {
+		log.debug("deletePreferences:" + application);
+		if (application == null) {
+			log.warn("Invalid argument.");
+			return false;			
+		}
+		Connection con = null;
+		try {
+			con = ConnectionPool.getPooledConnection();						
+			PreparedStatement pstmt = con.prepareStatement("delete from preference where user_id = ? and application = ?");
+			pstmt.setInt(1, getUserId());
+			pstmt.setString(2, application);
+			int rows = pstmt.executeUpdate();
+			log.info(rows + " preferences deleted.");
+		} catch (SQLException e) {
+			log.error(e.getMessage());
+			return false;			
+		} finally {
+			try {
+				con.close();
+			} catch (SQLException e) {
+				log.error(e.getMessage());
+			}
+		}
 		return true;
 	}
 
