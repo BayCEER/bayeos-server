@@ -49,43 +49,63 @@ public class ToolsHandler extends AccessHandler implements IToolsHandler {
     	
     	
     	
-    public Boolean changePassword(String oldPassword,String newPassword) throws XmlRpcException{
-            // Check Execute Access 
+    public Boolean changePassword(String oldPassword,String newPassword) throws XmlRpcException{    	    	           
             if (logger.isDebugEnabled()) {  
              logger.debug("changePassword(" + getUserId() + ")");
             }
+           
+            if (!checkWrite(getUserId())){
+            	throw new XmlRpcException(0, "Missing right to change password.");
+            }
             
             ResultSet rs1 = null;    	
+            ResultSet rs2 = null;
         	PreparedStatement st = null;
         	Connection con = null;
             try {
             	
-            	rs1 = SelectUtils.getResultSet(ConnectionPool.getPooledConnection(), "select login, url, name, update_stmt, username, password from auth_db, benutzer where benutzer.fk_auth_db = auth_db.id and benutzer.id = " + getUserId());
+            	rs1 = SelectUtils.getResultSet(ConnectionPool.getPooledConnection(), "select login, url, name, update_stmt, query_stmt, username, password from auth_db, benutzer where benutzer.fk_auth_db = auth_db.id and benutzer.id = " + getUserId());
             	// Check if user is authenticated by database        	
             	if (!rs1.next()){
-            		throw new XmlRpcException(0, "Can't change password for none database users.");
-            		
-            	} else {
+            		throw new XmlRpcException(0, "Can't change password for none database users.");            		
+            	} else {            		            		            		
             		String name   = rs1.getString("name");
             		String login = rs1.getString("login");
             		logger.info("Trying to update password for user: " + login + " by authentication method: " + name);
             		
+            		// Open connection to database 
             		Properties props = new Properties();
             		props.setProperty("user",rs1.getString("username"));
             		props.setProperty("password",rs1.getString("password"));		
             		con = DriverManager.getConnection(rs1.getString("url"), props);
             		
+            		// Verify old password 
+            		st = con.prepareStatement(rs1.getString("query_stmt"));		
+            		st.setString(1,oldPassword);
+            		st.setString(2,login);
+            		
+            		rs2 = st.executeQuery();
+            		rs2.next();
+            		
+            		if (!rs2.getBoolean(1)){            			
+            			logger.warn("Failed to authenticate user with old password.");
+            			throw new XmlRpcException(0, "Failed to authenticate user " + login + " with old password." );			
+            		}
+            		
+            		// Save new password 
             		st = con.prepareStatement(rs1.getString("update_stmt"));
             		st.setString(1,newPassword);
             		st.setString(2,login);        		
             		st.executeUpdate();
+            	
             	}
             } catch (SQLException e) {
         		logger.error(e.getMessage());
-        		throw new XmlRpcException(0, "Error change password for user " + this.getUserId());
+        		throw new XmlRpcException(0, "Error changing password for user " + this.getUserId());
         	} finally {
         		try {        			
         			rs1.close();
+        			rs2.close();
         			if (con != null) con.close();
         		} catch (SQLException e) {
         			logger.error(e.getMessage());
