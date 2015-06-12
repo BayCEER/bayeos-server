@@ -431,7 +431,7 @@ end; $$;
 	<changeSet id="111" author="oa">
 	    <comment>Add rights on self for all users</comment>
 	    <sql>	         	        
-	        delete from zugriff using objekt o, art_objekt a where o.id = zugriff.id_obj and o.id = zugriff.id_benutzer and o.id_art = a.id and a.uname = 'benutzer'	        	          
+	        delete from zugriff using objekt o, art_objekt a where o.id = zugriff.id_obj and o.id = zugriff.id_benutzer and o.id_art = a.id and a.uname = 'benutzer';	        	          
 	        insert into zugriff(id_obj,id_benutzer,read,write,exec,inherit) 
 	        select o.id, o.id, true, true, true, false from objekt o, art_objekt where o.id_art = art_objekt.id and art_objekt.uname = 'benutzer'; 	                
 	    </sql>
