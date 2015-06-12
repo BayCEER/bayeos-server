@@ -19,9 +19,8 @@
 	<description>bayeos-server</description>
 	
 	
-	<properties>	
-	    <dbUrl>jdbc:postgresql://bayeos-dev/bayeos</dbUrl>
-	    <!--  <dbUrl>jdbc:postgresql://localhost/bayeos</dbUrl>  -->
+	<properties>		    
+	    <dbUrl>jdbc:postgresql://localhost/bayeos</dbUrl> 
 		<dbUser>bayeos</dbUser>
 		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>					 	 		
 		<publish.path>${publish.debian.path}</publish.path>					 
