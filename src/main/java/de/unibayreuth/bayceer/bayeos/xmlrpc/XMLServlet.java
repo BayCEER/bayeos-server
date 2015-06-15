@@ -71,12 +71,18 @@ public class XMLServlet extends HttpServlet {
 		}
 		logger.setAdditivity(false);
 	
-		
-		System.setProperty("user.timezone", "GMT+1");
-		TimeZone.setDefault(TimeZone.getTimeZone("GMT+1"));
-		
-		logger.info("Default timezone: " + TimeZone.getDefault().getID());		
+		// TimeZone 
+		String timeZone = config.getInitParameter("timezone");								
+		System.setProperty("user.timezone", timeZone);
+		TimeZone.setDefault(TimeZone.getTimeZone(timeZone));		
+		logger.info("Default timezone: " + TimeZone.getDefault().getID());
+				
+		// Encoding 
 		logger.info("Encoding:" + System.getProperty("file.encoding"));
+		
+		// Version 
+		String version = config.getInitParameter("version");
+		LookUpTableHandler.setVersion(version);
 
 		// xml-rpc
 		logger.debug("Initialize XmlRpcServer ...");

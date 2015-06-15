@@ -438,7 +438,8 @@ end; $$;
 	</changeSet>
 	
 	<changeSet id="112" author="oa">
-	  <update tableName="sys_variablen"><column name="value">1.9.5</column><where>name like 'version'</where></update>
+	    <comment>Version information now in web.xml</comment>
+	  <sql>delete from sys_variablen where name like 'version';</sql>	  
 	 </changeSet>
 	
 	

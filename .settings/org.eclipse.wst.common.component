@@ -4,7 +4,7 @@
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-        <dependent-module archiveName="bayeos-xmlrpc-1.9.4.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/bayeos-xmlrpc/bayeos-xmlrpc">
+        <dependent-module archiveName="bayeos-xmlrpc-1.9.5.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/bayeos-xmlrpc/bayeos-xmlrpc">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="BayEOS-Server"/>
