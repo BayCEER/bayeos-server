@@ -18,17 +18,44 @@
 	<url>http://www.bayceer.uni-bayreuth.de/bayeos</url>
 	<description>bayeos-server</description>
 	
+	<profiles>
+	    
+	    
+	    
 	
-	<properties>		    
-	    <dbUrl>jdbc:postgresql://localhost/bayeos</dbUrl> 
+	<profile>
+    	<id>prod</id>
+    	<activation>
+      		<activeByDefault>true</activeByDefault>
+    	</activation>
+    	<properties>		    
+	    	<dbUrl>jdbc:postgresql://localhost/bayeos</dbUrl> 
+			<logPath>/var/log/tomcat6/XMLServlet.log</logPath>	
+			<logLevel>INFO</logLevel>												
+		</properties>
+    </profile>
+    
+	<profile>
+    	<id>dev</id>
+    	<properties>		    
+	    	<dbUrl>jdbc:postgresql://bayeos-dev/bayeos</dbUrl> 
+			<logPath>XMLServlet.log</logPath>	
+			<logLevel>DEBUG</logLevel>												
+		</properties>    	
+    </profile>
+	
+	</profiles>
+	
+	
+	<properties>		    	    
 		<dbUser>bayeos</dbUser>
-		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>					 	 		
-		<publish.path>${publish.debian.path}</publish.path>					 
+		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>
+		<timezone>GMT+1</timezone>						 	 		
+		<publish.path>${publish.debian.path}</publish.path>										
 	</properties>
 	
 	
-	<dependencies>
-		
+	<dependencies>		
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
@@ -38,7 +65,7 @@
 		<dependency>
 			<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 			<artifactId>bayeos-xmlrpc</artifactId>
-			<version>1.9.4</version>
+			<version>1.9.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.novell.ldap</groupId>
@@ -55,32 +82,31 @@
 
 
 	<build>
-	     <testResources>
+	  <testResources>
           <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>true</filtering>              
           </testResource>                    
       </testResources>
-		<finalName>BayEOS-Server</finalName>
+      	  
+      
+	<finalName>BayEOS-Server</finalName>
 		<plugins>			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.3</version>
-				<configuration>
-					<nonFilteredFileExtensions>					
-						<nonFilteredFileExtension>jks</nonFilteredFileExtension>
-					</nonFilteredFileExtensions>
+				<configuration>					
 					<webResources>
 						<resource>
 							<!-- this is relative to the pom.xml directory -->
-							<directory>conf</directory>
+							<directory>/src/main/webapp</directory>
 							<filtering>true</filtering>
 							<includes>
 								<include>**/*.properties</include>
-								<include>/META-INF/context.xml</include>
-							</includes>
-							
+								<include>**/*.xml</include>
+								<include>**/*.jsp</include>
+							</includes>							
 						</resource>
 					</webResources>
 				</configuration>

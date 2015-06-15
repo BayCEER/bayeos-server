@@ -5,6 +5,16 @@ xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation
   <servlet>
     <servlet-name>XMLServlet</servlet-name>
     <servlet-class>de.unibayreuth.bayceer.bayeos.xmlrpc.XMLServlet</servlet-class>
+     <init-param>   
+        <description>Server Version</description>   
+        <param-name>version</param-name>   
+        <param-value>${project.version}</param-value>   
+     </init-param>   
+    <init-param>   
+        <description>Time zone</description>   
+        <param-name>timezone</param-name>   
+        <param-value>${timezone}</param-value>   
+     </init-param>   
   </servlet>
   <servlet-mapping>
     <servlet-name>XMLServlet</servlet-name>

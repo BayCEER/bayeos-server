@@ -34,6 +34,8 @@ public class LookUpTableHandler extends AccessHandler implements ILookUpTableHan
     
     final static Logger logger = Logger.getLogger(LookUpTableHandler.class.getName()); 
     
+    private static String version; 
+    
 
     
     public Vector getIntervalTypes() throws XmlRpcException {
@@ -177,42 +179,16 @@ public Vector getTimeZones() throws XmlRpcException {
 
 
 public String getVersion() throws XmlRpcException {
-	return getSysVariable("version");		
+	return version;		
 }
 
 
-private String getSysVariable(String name) throws XmlRpcException {
-	 Connection con = null;
-	 PreparedStatement pst = null;
-	 try {
-	 con =  getPooledConnection();
-	 pst = con.prepareStatement("select value from sys_variablen where name like ?");
-	 pst.setString(1, name);
-	 ResultSet rs = pst.executeQuery();
-	 if(rs.next()){
-		 return rs.getString(1);
-	 } else {
-		 throw new XmlRpcException(0, "Variable " + name + " not found in table sys_variablen.");
-	 } 
-	 
-	 } catch (SQLException e){
-		 return null;
-	 } finally {
-		 try {
-			 if (pst != null) pst.close();
-			 if (con != null) con.close();
-		} catch (SQLException e) {
-			logger.error(e.getMessage());
-		}
-	 }
-	 
-     
-     
+public static void setVersion(String version) {
+	LookUpTableHandler.version = version;
 }
    
    
-    
-       
+   
     
 }
 
