@@ -442,6 +442,33 @@ end; $$;
 	  <sql>delete from sys_variablen where name like 'version';</sql>	  
 	 </changeSet>
 	
+	<changeSet id="113" author="oa">
+	    <comment>Shrink his_massendaten</comment>
+	    <createProcedure>
+	<![CDATA[
+	    CREATE OR REPLACE FUNCTION shrink_his_massendaten()
+  RETURNS integer AS
+$BODY$declare
+  last_id integer;
+  num_rows integer;
+ begin  
+    select into last_id value::integer from sys_variablen where name like 'aggr_last_his_massendaten_id';
+    if not found then
+     raise exception 'Variable aggr_last_his_massendaten_id not found.';
+    end if;
+    delete from his_massendaten where his_id < last_id;
+    get diagnostics num_rows = row_count;    
+    if num_rows > 0 then
+        raise notice 'Deleted % rows from his_massendaten.', num_rows;
+    end if;
+    return num_rows;
+ end;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+	  	]]>		
+	</createProcedure>  
+	</changeSet>
 	
 	 	  
 </databaseChangeLog>
