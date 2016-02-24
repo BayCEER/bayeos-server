@@ -10,21 +10,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.unibayreuth.bayceer.bayeos.client.AbstractClientTest;
+import de.unibayreuth.bayceer.bayeos.client.NodeTest;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektNode;
 
-public class TestTreeHandler extends AbstractClientTest {
-
-	@Before
-	public void setUp() throws XmlRpcException, IOException {
-		super.setUp();
-	}
-
-	@After
-	public void tearDown() throws XmlRpcException {
-		super.tearDown();
-	}
-
+public class TestTreeHandler extends NodeTest {
+	
 	@Test
 	public void testGetRoot() throws XmlRpcException {
 		Vector r = (Vector) cli.execute("TreeHandler.getRoot", "messung_%",false,"week",null);		
@@ -36,7 +27,19 @@ public class TestTreeHandler extends AbstractClientTest {
 		r = (Vector) cli.execute("TreeHandler.getRoot", "web_ordner",false,"week",null);		
 		assertNotNull(r);
 	}
+	
+	@Test
+	public void testfindOrSaveNode() throws XmlRpcException {								
+		 ObjektNode n = new ObjektNode((Vector) cli.execute("TreeHandler.findOrSaveNode", "messung_ordner","TestNode", rootNode.getId()));
+		 assertTrue(n.getId()!=rootNode.getId());
+		 Integer id = n.getId();		 		 
+		 n = new ObjektNode((Vector) cli.execute("TreeHandler.findOrSaveNode", "messung_ordner","TestNode", rootNode.getId()));		
+		 assertEquals(id, n.getId());		 
+		 assertTrue((Boolean)cli.execute("TreeHandler.deleteNode", n.getId()));
+		
+	}
 
+	
 	
 
 }
