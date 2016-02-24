@@ -5,7 +5,7 @@
 	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 	<artifactId>bayeos-server</artifactId>
 	<packaging>war</packaging>
-	<version>1.9.6</version>
+	<version>1.9.7</version>
 	
 	<parent>
 		<groupId>de.unibayreuth.bayceer.bayeos</groupId>
@@ -150,27 +150,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>deploy</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target>
-								<echo message="Copy to ${publish.path}" />																
-								<copy file="target/${project.name}-${project.version}.deb" todir="${publish.path}"/>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+						
 			
 		</plugins>
 
