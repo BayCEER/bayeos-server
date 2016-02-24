@@ -14,8 +14,12 @@ import org.apache.xmlrpc.XmlRpcException;
 
 import de.unibayreuth.bayceer.bayeos.client.Client;
 
-public abstract class AbstractClientTest extends TestCase {
 
+public abstract class AbstractClientTest extends TestCase {
+/* 
+ * Run a single test with: mvn -Dtest=<TestClass> test
+ * 
+ */
 	public XmlRpcClient cli;
 	Properties p = new Properties();
 	

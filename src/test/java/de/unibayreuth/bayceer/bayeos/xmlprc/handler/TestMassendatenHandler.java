@@ -1,12 +1,15 @@
 package de.unibayreuth.bayceer.bayeos.xmlprc.handler;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Vector;
+
+import org.apache.xmlrpc.XmlRpcException;
 
 import de.unibayreuth.bayceer.bayeos.client.NodeTest;
 
 public class TestMassendatenHandler extends NodeTest {
-	
+			
 	//TODO: Replace getRows with getByteRows and use exact time values to query result !
 	public void testUpsert() throws Exception {						
 		// Create Payload 

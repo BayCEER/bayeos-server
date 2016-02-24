@@ -19,9 +19,8 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.filter.TimeFilter;
  * @author oliver
  *
  */
-public class NodeTest extends AbstractClientTest {
-	
-		
+public abstract class NodeTest extends AbstractClientTest {
+			
 	public Vector statusFilter;
 	public Vector timeFilter;
 	public ObjektNode rootNode;
@@ -48,10 +47,9 @@ public class NodeTest extends AbstractClientTest {
 	
 	
 	@Override
-	public void tearDown() throws XmlRpcException {
+	public void tearDown() throws XmlRpcException {				
+		assertTrue((Boolean)cli.execute("TreeHandler.deleteNode", testNode.getId()));
 		super.tearDown();
-		
-		assertTrue((Boolean)cli.execute("TreeHandler.deleteNode", testNode.getId()));    
 	}
 
 }
