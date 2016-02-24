@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -55,47 +56,47 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 	 */
 	public Vector getRoot(String art, Boolean activeFilter,
 			String missingInterval, Vector timeFilter) throws XmlRpcException {
-		StringBuffer sql;
-		PreparedStatement pst = null;
+		
 		Connection con = null;
 
 		try {
-			if (logger.isDebugEnabled()) {
-				logger.debug("getRoot(" + art + ")");
-			}
-			con = ConnectionPool.getPooledConnection();
-			if (ObjektArt.get(art).isExtern()) {
-				sql = new StringBuffer(
-						// Check if is null with planner if index is used 
-						"select false, false,id,id_super,uname ,de, null,null,null,null,true,false,true from "
-								+ "v_web_objekt where id_super is null and uname like ?");
-				pst = con.prepareStatement(sql.toString());
-				pst.setString(1, art + '%');
+			if (logger.isDebugEnabled()) { logger.debug("getRoot(" + art + ")");}			
+			con = ConnectionPool.getPooledConnection();			
+			StringBuffer sql = new StringBuffer(
+					"select check_write(o.id,?),check_exec(o.id,?),o.id,o.id_super, art_objekt.uname as objektart,"
+							+ " o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end,isActive(o.plan_start,o.plan_end),"
+							+ "isMissing(o.rec_end,?), true from objekt o, art_objekt where o.id_super is null "
+							+ "and o.id_art = art_objekt.id and art_objekt.uname = ? and check_read(o.id,?)");
+			PreparedStatement pst = con.prepareStatement(sql.toString());
+			pst.setInt(1, getUserId());
+			pst.setInt(2, getUserId());
+			pst.setString(3, missingInterval);
+			pst.setString(4, art);
+			pst.setInt(5, getUserId());
+						
+			ResultSet rs = pst.executeQuery();
+			if (rs.next()){				
+				return XmlRpcUtils.rowToVector(rs);				
 			} else {
-				sql = new StringBuffer(
-						"select check_write(o.id,?),check_exec(o.id,?),o.id,o.id_super, art_objekt.uname as objektart,"
-								+ " o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end,isActive(o.plan_start,o.plan_end),"
-								+ "isMissing(o.rec_end,?), true from objekt o, art_objekt where o.id_super is null "
-								+ "and o.id_art = art_objekt.id and art_objekt.uname = ? and check_read(o.id,?)");
-
+				sql = new StringBuffer("select false, false,id,id_super,uname ,de, null,null,null,null,true,false,true from objekt_extern where id_super is null and uname = ?");
 				pst = con.prepareStatement(sql.toString());
-				pst.setInt(1, getUserId());
-				pst.setInt(2, getUserId());
-				pst.setString(3, missingInterval);
-				pst.setString(4, art);
-				pst.setInt(5, getUserId());
-
+				pst.setString(1, art);				
+				rs = pst.executeQuery();				
+				if (rs.next()){
+					return XmlRpcUtils.rowToVector(rs);
+				} else {
+					return null;
+				}
 			}
-			return XmlRpcUtils.getRow(pst);
+			
+			
 		} catch (SQLException e) {
 			throw new XmlRpcException(0, e.getMessage());
 		} finally {
-			try {
-				pst.close();
+			try {				
 				con.close();
 			} catch (SQLException e) {
 				logger.error(e.getMessage());
-
 			}
 		}
 
@@ -641,16 +642,21 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		    } else {
 		    	parent_id = (Integer)root.get(3);
 		    }
-		}		
-		Vector childs  = getChilds(parent_id, art, null, null, null);	
-		if (childs.size()>1){
-			throw new XmlRpcException(0, "Found " + childs.size() + " nodes with name:" + name + " for parent:" + parent_id + ".");
-		} else if (childs.size() == 1){
-			return (Vector)childs.get(0);
-		} else {
-			return newNode(art, name, parent_id);
 		}
+		
+		Vector childs  = getChilds(parent_id, art, null, null, null);
+		Iterator i = childs.iterator();
+		
+		while(i.hasNext()){			
+			Vector node = (Vector) i.next();			
+			if (node.get(5).equals(name)){
+				return node;
+			}			
+		}
+		
+		return newNode(art, name, parent_id);
 	}
+	
 
 
 	public String getNodePath(Integer id) throws XmlRpcException {
