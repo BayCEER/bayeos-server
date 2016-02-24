@@ -37,7 +37,6 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.filter.TimeFilter;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.formats.DateFormat;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ITreeHandler;
 
-
 /**
  * 
  * @author oliver
@@ -52,62 +51,60 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 	 * 
 	 * @author oliver 24.03.2011 OA Refactored paramater calls
 	 * @author oliver 03.08.2012 Added new Methods
+	 * @author oliver 24.02.2016 New try with resource statement 
 	 * 
 	 */
-	public Vector getRoot(String art, Boolean activeFilter,
-			String missingInterval, Vector timeFilter) throws XmlRpcException {
-		
+	public Vector getRoot(String art, Boolean activeFilter, String missingInterval, Vector timeFilter)
+			throws XmlRpcException {
 		Connection con = null;
-
 		try {
-			if (logger.isDebugEnabled()) { logger.debug("getRoot(" + art + ")");}			
+			if (logger.isDebugEnabled()) {
+				logger.debug("getRoot(" + art + ")");
+			}
 			con = ConnectionPool.getPooledConnection();			
-			StringBuffer sql = new StringBuffer(
+			try (PreparedStatement pst = con.prepareStatement(
 					"select check_write(o.id,?),check_exec(o.id,?),o.id,o.id_super, art_objekt.uname as objektart,"
 							+ " o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end,isActive(o.plan_start,o.plan_end),"
 							+ "isMissing(o.rec_end,?), true from objekt o, art_objekt where o.id_super is null "
-							+ "and o.id_art = art_objekt.id and art_objekt.uname = ? and check_read(o.id,?)");
-			PreparedStatement pst = con.prepareStatement(sql.toString());
-			pst.setInt(1, getUserId());
-			pst.setInt(2, getUserId());
-			pst.setString(3, missingInterval);
-			pst.setString(4, art);
-			pst.setInt(5, getUserId());
-						
-			ResultSet rs = pst.executeQuery();
-			if (rs.next()){				
-				return XmlRpcUtils.rowToVector(rs);				
-			} else {
-				sql = new StringBuffer("select false, false,id,id_super,uname ,de, null,null,null,null,true,false,true from objekt_extern where id_super is null and uname = ?");
-				pst = con.prepareStatement(sql.toString());
-				pst.setString(1, art);				
-				rs = pst.executeQuery();				
-				if (rs.next()){
+							+ "and o.id_art = art_objekt.id and art_objekt.uname = ? and check_read(o.id,?)")) {
+				pst.setInt(1, getUserId());
+				pst.setInt(2, getUserId());
+				pst.setString(3, missingInterval);
+				pst.setString(4, art);
+				pst.setInt(5, getUserId());
+				ResultSet rs = pst.executeQuery();
+				if (rs.next()) {
 					return XmlRpcUtils.rowToVector(rs);
 				} else {
-					return null;
+					try (PreparedStatement st = con.prepareStatement(
+							"select false, false,id,id_super,uname ,de, null,null,null,null,true,false,true from objekt_extern where id_super is null and uname = ?")) {
+						st.setString(1, art);
+						rs = st.executeQuery();
+						if (rs.next()) {
+							return XmlRpcUtils.rowToVector(rs);
+						} else {
+							return null;
+						}
+					}
 				}
 			}
-			
-			
 		} catch (SQLException e) {
 			throw new XmlRpcException(0, e.getMessage());
 		} finally {
-			try {				
+			try {
 				con.close();
 			} catch (SQLException e) {
 				logger.error(e.getMessage());
 			}
 		}
-
 	}
 
-	
 	// Liefert den kompletten Subbaum mit Pfad
 	// Implementiert für R-Package
 	// SH 16.02.2011
-	public Vector getAllChildren(Integer SuperId, Boolean isExtern,	Vector webFilter, String antFilter, String artFilter,
-			Integer maxDepth, Boolean activeFilter, String missingInterval,	Vector timeFilter) throws XmlRpcException {
+	public Vector getAllChildren(Integer SuperId, Boolean isExtern, Vector webFilter, String antFilter,
+			String artFilter, Integer maxDepth, Boolean activeFilter, String missingInterval, Vector timeFilter)
+					throws XmlRpcException {
 		TimeFilter tFilter;
 		if (timeFilter == null) {
 			tFilter = null;
@@ -124,15 +121,12 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 			String userId = getUserId().toString();
 
 			isActive = "isActive(plan_start,plan_end)";
-			isMissing = (missingInterval != null) ? "isMissing(rec_end,'"
-					+ missingInterval + "')" : "false";
-			Active = (activeFilter != null && activeFilter.booleanValue()) ? "true"
-					: "false";
+			isMissing = (missingInterval != null) ? "isMissing(rec_end,'" + missingInterval + "')" : "false";
+			Active = (activeFilter != null && activeFilter.booleanValue()) ? "true" : "false";
 			von = (tFilter != null ? DateFormat.databaseDateFormat.format(tFilter.getVon()) : "null");
 			bis = (tFilter != null ? DateFormat.databaseDateFormat.format(tFilter.getBis()) : "null");
 			if (isExtern) {
-				sql = new StringBuffer(
-						"select *,null,null from get_web_objekt_baum(");
+				sql = new StringBuffer("select *,null,null from get_web_objekt_baum(");
 				sql.append(SuperId);
 				sql.append(",'./',");
 				sql.append(maxDepth);
@@ -179,15 +173,13 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 	}
 
-	public Boolean renameNode(Integer obj_id, String art, String name)
-			throws XmlRpcException {
+	public Boolean renameNode(Integer obj_id, String art, String name) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("renameNode(" + obj_id + ")");
 		}
 
 		if (!checkWrite(obj_id))
-			throw new InvalidRightException(0, "Missing rights on " + obj_id
-					+ ".");
+			throw new InvalidRightException(0, "Missing rights on " + obj_id + ".");
 
 		Connection con = null;
 		PreparedStatement st = null;
@@ -233,8 +225,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 
 		if (!checkFullAccess(obj_id))
-			throw new InvalidRightException(0, "Missing rights on " + obj_id
-					+ ".");
+			throw new InvalidRightException(0, "Missing rights on " + obj_id + ".");
 
 		Connection con = null;
 		PreparedStatement st = null;
@@ -264,8 +255,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 
 	}
 
-	public Boolean moveNode(Integer id, Integer targetId)
-			throws XmlRpcException {
+	public Boolean moveNode(Integer id, Integer targetId) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("moveNode(" + id + ";" + targetId + ")");
 		}
@@ -299,8 +289,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 	}
 
-	public Boolean linkNode(Integer id_von, Integer id_auf)
-			throws XmlRpcException {
+	public Boolean linkNode(Integer id_von, Integer id_auf) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("linkNode(" + id_von + ";" + id_auf + ")");
 		}
@@ -334,8 +323,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 	}
 
-	public Integer copyNode(Integer id, Integer targetId)
-			throws XmlRpcException {
+	public Integer copyNode(Integer id, Integer targetId) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("copyNode(" + id + ";" + targetId + ")");
 		}
@@ -373,8 +361,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 	}
 
-	public Vector newNode(String art, String name, Integer parent_id)
-			throws XmlRpcException {
+	public Vector newNode(String art, String name, Integer parent_id) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("newNode(" + art + ")");
 		}
@@ -434,8 +421,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 
 	}
 
-	public Vector getInheritedParentIds(Integer obj_id, String art)
-			throws XmlRpcException {
+	public Vector getInheritedParentIds(Integer obj_id, String art) throws XmlRpcException {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("getInheritedParentIds(" + obj_id + "," + art + ")");
@@ -446,11 +432,9 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 			// alle parent knoten bestimmen
 			con = getPooledConnection();
 			if (ObjektArt.get(art).isExtern()) {
-				rs = SelectUtils.getResultSet(con, "select get_web_parent_ids("
-						+ obj_id + ")");
+				rs = SelectUtils.getResultSet(con, "select get_web_parent_ids(" + obj_id + ")");
 			} else {
-				rs = SelectUtils.getResultSet(con,
-						"select get_inherited_parent_ids(" + obj_id + ")");
+				rs = SelectUtils.getResultSet(con, "select get_inherited_parent_ids(" + obj_id + ")");
 			}
 			rs.next(); // gibt immer einen Record zur�ck
 			String ParentIds = rs.getString(1);
@@ -470,26 +454,18 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 	}
 
-	
-
-	public java.util.Vector findNode(java.lang.String name)
-			throws XmlRpcException {
+	public java.util.Vector findNode(java.lang.String name) throws XmlRpcException {
 		String sql;
 		try {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Searching..");
 			}
 			sql = "select u.de,u.id,u.id_super, u.uname from (";
-			sql = sql
-					+ "select de, id, id_super, uname, true as a from v_web_objekt where lower(de) like '%"
-					+ SelectUtils.addSlashes(name.toLowerCase())
-					+ "%' "
-					+ "union select o.de ,o.id, o.id_super, uname, check_read(o.id,"
-					+ getUserId()
-					+ ") as a  from objekt o, art_objekt where "
-					+ "o.id_art = art_objekt.id and lower(o.de) like '%"
-					+ SelectUtils.addSlashes(name.toLowerCase())
-					+ "%' and uname in "
+			sql = sql + "select de, id, id_super, uname, true as a from v_web_objekt where lower(de) like '%"
+					+ SelectUtils.addSlashes(name.toLowerCase()) + "%' "
+					+ "union select o.de ,o.id, o.id_super, uname, check_read(o.id," + getUserId()
+					+ ") as a  from objekt o, art_objekt where " + "o.id_art = art_objekt.id and lower(o.de) like '%"
+					+ SelectUtils.addSlashes(name.toLowerCase()) + "%' and uname in "
 					+ "('mess_einheit','mess_ziel','messung_ordner','messung_massendaten','messung_labordaten','mess_geraet','mess_kompartiment','mess_ort')) u ";
 			sql = sql + " where u.a = true";
 			return XmlRpcUtils.getRows(getPooledConnection(), sql);
@@ -499,16 +475,9 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 
 	}
-	
-	
-	
-		
-				
-	
 
-	public Vector getChilds(Integer SuperId, String art,
-			Boolean activeFilter, String missingInterval, Vector timeFilter)
-			throws XmlRpcException {
+	public Vector getChilds(Integer SuperId, String art, Boolean activeFilter, String missingInterval,
+			Vector timeFilter) throws XmlRpcException {
 		StringBuffer sql;
 		PreparedStatement pst = null;
 		Connection con = null;
@@ -526,24 +495,22 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 				fvon = new java.sql.Timestamp(tFilter.getVon().getTime());
 				fbis = new java.sql.Timestamp(tFilter.getBis().getTime());
 			}
-			
+
 			ObjektArt artObjekt = ObjektArt.get(art);
-			
 
 			if (!artObjekt.isExtern()) {
-				sql = new StringBuffer(
-						"select check_write(s.id,?), check_exec(s.id,?), s.* from ( "
-								+ "select o.id, o.id_super, a.uname as objektart, o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end, "
-								+ "isActive(o.plan_start,o.plan_end),isMissing(o.rec_end,?),has_child(o.id) "
-								+ "from objekt o, art_objekt a where o.id_art = a.id and o.id_super = ? "
-								+ "union "
-								+ "select v.id_auf as id,o.id_super, a.uname as objektart, o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end,"
-								+ "isActive(o.plan_start,o.plan_end),isMissing(o.rec_end,?),has_child(o.id) from objekt o,verweis v,"
-								+ "art_objekt a where o.id = v.id_auf and v.id_von = ? and o.id_art = a.id ) S "
-								+ " where check_read(s.id,?)");
+				sql = new StringBuffer("select check_write(s.id,?), check_exec(s.id,?), s.* from ( "
+						+ "select o.id, o.id_super, a.uname as objektart, o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end, "
+						+ "isActive(o.plan_start,o.plan_end),isMissing(o.rec_end,?),has_child(o.id) "
+						+ "from objekt o, art_objekt a where o.id_art = a.id and o.id_super = ? " + "union "
+						+ "select v.id_auf as id,o.id_super, a.uname as objektart, o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end,"
+						+ "isActive(o.plan_start,o.plan_end),isMissing(o.rec_end,?),has_child(o.id) from objekt o,verweis v,"
+						+ "art_objekt a where o.id = v.id_auf and v.id_von = ? and o.id_art = a.id ) S "
+						+ " where check_read(s.id,?)");
 
 				if (timeFilter != null) {
-					sql.append(" and ((? <= s.rec_start AND ? > s.rec_start) OR ( ? >= s.rec_start AND ? < s.rec_end)) ");
+					sql.append(
+							" and ((? <= s.rec_start AND ? > s.rec_start) OR ( ? >= s.rec_start AND ? < s.rec_end)) ");
 
 				}
 				if (activeFilter != null && activeFilter == true) {
@@ -579,13 +546,13 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 								+ "select false as check_write, false as check_exec, o.id, o.id_super, o.uname as objektart,o.de,null,null,null,null,false,false,"
 								+ "true from objekt_extern o where o.id_super = ? ");
 				if (timeFilter != null) {
-					sql.append(" and ((? <= o.rec_start AND ? > o.rec_start) OR ( ? >= o.rec_start AND ? < o.rec_end)) ");
+					sql.append(
+							" and ((? <= o.rec_start AND ? > o.rec_start) OR ( ? >= o.rec_start AND ? < o.rec_end)) ");
 				}
 				if (activeFilter != null && activeFilter == true) {
 					sql.append(" and (isActive = true)");
 				}
-				
-				
+
 				sql.append(" order by 6 ");
 
 				pst = con.prepareStatement(sql.toString());
@@ -619,45 +586,37 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 
 	}
 
-
-	
-	public Vector getChildren(Integer SuperId, String art, Vector webFilter, Boolean activeFilter, String missingInterval, Vector timeFilter)
-			throws XmlRpcException {
-		return getChilds(SuperId, art, activeFilter, missingInterval, timeFilter);		
+	public Vector getChildren(Integer SuperId, String art, Vector webFilter, Boolean activeFilter,
+			String missingInterval, Vector timeFilter) throws XmlRpcException {
+		return getChilds(SuperId, art, activeFilter, missingInterval, timeFilter);
 	}
-	
-	
 
+	public Vector findOrSaveNode(String art, String name, Integer parent_id) throws XmlRpcException {
 
-    public Vector findOrSaveNode(String art, String name, Integer parent_id)
-			throws XmlRpcException {
-		
 		if (logger.isDebugEnabled()) {
 			logger.debug("findOrSaveNode()");
 		}
-		if (parent_id == null){
-		    Vector root = getRoot(art, null, null, null);
-		    if (root == null){
-		    	throw new XmlRpcException(0, "Can't find root node for art:" + art);		    	
-		    } else {
-		    	parent_id = (Integer)root.get(3);
-		    }
+		if (parent_id == null) {
+			Vector root = getRoot(art, null, null, null);
+			if (root == null) {
+				throw new XmlRpcException(0, "Can't find root node for art:" + art);
+			} else {
+				parent_id = (Integer) root.get(3);
+			}
 		}
-		
-		Vector childs  = getChilds(parent_id, art, null, null, null);
+
+		Vector childs = getChilds(parent_id, art, null, null, null);
 		Iterator i = childs.iterator();
-		
-		while(i.hasNext()){			
-			Vector node = (Vector) i.next();			
-			if (node.get(5).equals(name)){
+
+		while (i.hasNext()) {
+			Vector node = (Vector) i.next();
+			if (node.get(5).equals(name)) {
 				return node;
-			}			
+			}
 		}
-		
+
 		return newNode(art, name, parent_id);
 	}
-	
-
 
 	public String getNodePath(Integer id) throws XmlRpcException {
 		Connection con = null;
@@ -666,30 +625,27 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		String path = null;
 		if (!checkRead(id)) {
 			throw new InvalidRightException(0, "Missing rights.");
-		}		
-		try{
+		}
+		try {
 			con = ConnectionPool.getPooledConnection();
-			pst = con.prepareStatement("select get_path(?)");			
+			pst = con.prepareStatement("select get_path(?)");
 			pst.setInt(1, id);
 			rs = pst.executeQuery();
-			rs.next();			
-			path= rs.getString(1);			
-		} catch (SQLException e){
-			logger.error(e.getMessage());			
+			rs.next();
+			path = rs.getString(1);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
 		} finally {
 			try {
 				rs.close();
 				pst.close();
 				con.close();
-			} catch (SQLException e){
+			} catch (SQLException e) {
 				logger.error(e.getMessage());
 			}
 		}
-		return path;		
+		return path;
 	}
-
-
-	
 
 	@Override
 	public Vector getNode(Integer id) throws XmlRpcException {
@@ -698,34 +654,27 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		Vector ret = null;
 		if (!checkRead(id)) {
 			throw new InvalidRightException(0, "Missing rights.");
-		}		
-		try{
+		}
+		try {
 			con = ConnectionPool.getPooledConnection();
-			pst = con.prepareStatement("select check_write(o.id,?), check_exec(o.id,?), o.id, o.id_super, a.uname as objektart, o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end, "
-								+ "isActive(o.plan_start,o.plan_end),null,has_child(o.id) from objekt o, art_objekt a where o.id_art = a.id and o.id = ?");			
-			pst.setInt(1, getUserId());		
+			pst = con.prepareStatement(
+					"select check_write(o.id,?), check_exec(o.id,?), o.id, o.id_super, a.uname as objektart, o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end, "
+							+ "isActive(o.plan_start,o.plan_end),null,has_child(o.id) from objekt o, art_objekt a where o.id_art = a.id and o.id = ?");
+			pst.setInt(1, getUserId());
 			pst.setInt(2, getUserId());
-			pst.setInt(3, id);			
-			ret = XmlRpcUtils.getRow(pst);						
-		} catch (SQLException e){
-			logger.error(e.getMessage());			
+			pst.setInt(3, id);
+			ret = XmlRpcUtils.getRow(pst);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
 		} finally {
 			try {
 				pst.close();
 				con.close();
-			} catch (SQLException e){
+			} catch (SQLException e) {
 				logger.error(e.getMessage());
 			}
 		}
 		return ret;
 	}
-
-
-	
-	
-	
-	
-	
-	
 
 }
