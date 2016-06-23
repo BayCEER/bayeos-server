@@ -51,7 +51,8 @@
 		<dbUser>bayeos</dbUser>
 		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>
 		<timezone>GMT+1</timezone>						 	 		
-		<publish.path>${publish.debian.path}</publish.path>										
+		<publish.path>${publish.debian.path}</publish.path>	
+		<release>wheezy</release>									
 	</properties>
 	
 	
@@ -126,7 +127,7 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
-							<deb>${project.build.directory}/${project.artifactId}-${project.version}.deb</deb>
+							<deb>${project.build.directory}/${project.artifactId}-${project.version}+${release}.deb</deb>
 							<verbose>false</verbose>
 							<dataSet>
 								<data>
