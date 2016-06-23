@@ -470,5 +470,49 @@ $BODY$
 	</createProcedure>  
 	</changeSet>
 	
+	<changeSet id="114" author="oa">
+	    <comment>Issue #19: plpgsql procedure create_objekt_with_detail fails for long text values</comment>
+	    
+	    <createProcedure>
+	    <![CDATA[
+	    CREATE OR REPLACE FUNCTION create_objekt_with_detail(
+    _id_benutzer integer,
+    _id_super integer,
+    _uname character varying,
+    _de character varying,
+    _en character varying)
+  RETURNS integer AS
+$BODY$declare
+rec record;
+tab art_objekt.detail_table%TYPE;
+begin
+
+if (_id_benutzer is null) or (_uname is null) then
+ raise exception 'Illegal argument'; 
+end if;
+
+select into tab detail_table from art_objekt where uname=_uname;
+if not found then
+  raise exception 'Unknown object type'; 
+end if;
+if tab is null then
+  raise exception 'Table name not found'; 
+end if;
+
+select into rec create_objekt_by_name(_id_benutzer,_id_super,_uname,_de,_en);
+if rec.create_objekt_by_name>0 then
+ execute 'insert into ' || tab || ' (id,bezeichnung) values (' || rec.create_objekt_by_name || ',' || quote_literal(_de) || ')';
+else 
+ raise exception 'No objekt created'; 
+end if;
+return rec.create_objekt_by_name;
+end;$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+	    ]]>
+		</createProcedure>
+	
+	</changeSet>
+	
 	 	  
 </databaseChangeLog>
