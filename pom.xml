@@ -5,7 +5,7 @@
 	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 	<artifactId>bayeos-server</artifactId>
 	<packaging>war</packaging>
-	<version>1.9.8</version>
+	<version>1.9.9</version>
 	
 	<parent>
 		<groupId>de.unibayreuth.bayceer.bayeos</groupId>
@@ -66,7 +66,7 @@
 		<dependency>
 			<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 			<artifactId>bayeos-xmlrpc</artifactId>
-			<version>1.9.5</version>
+			<version>1.9.9</version>
 		</dependency>
 		<dependency>
 			<groupId>com.novell.ldap</groupId>
