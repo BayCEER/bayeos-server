@@ -9,21 +9,30 @@
  *     University of Bayreuth - BayCEER - initial API and implementation
  ******************************************************************************/
 package de.unibayreuth.bayceer.bayeos.xmlrpc;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
+import org.postgresql.PGConnection;
+import org.postgresql.copy.CopyIn;
+import org.postgresql.copy.CopyManager;
 
 /*
  * InsertMassendaten.java
  *
- * Created on 8. Juli 2003, 16:04
+ *  
  */
 
 /**
@@ -34,40 +43,167 @@ public class InsertMassendaten  {
     
     private int i=0;
     
-    private Map insertedKeys = null;
+    private Map<Integer,Interval> intervalIndex; 
+ 
     private PreparedStatement pst,ustmin,ustmax, ups;
     
     private Connection con = null;
+
+	private Integer userId;
     
     private static final Logger logger = Logger.getLogger(InsertMassendaten.class);
+    
+    class Interval {
+    	public java.sql.Timestamp min;
+    	public java.sql.Timestamp max;
+    	
+    	public Interval(java.sql.Timestamp min, java.sql.Timestamp max) {
+    		this.min = min; this.max = max;    		
+		}
+    	
+    	public Interval(java.sql.Timestamp value){
+    		this.min = value; this.max = value;
+    	}    	    	    
+    	
+    	void expand(java.sql.Timestamp value){
+    		if (min == null || value.before(min)) min = value;
+    		if (max == null || value.after(max)) max = value;    		
+    	}
+    }
        
     
     /** Creates a new instance of InsertMassendaten */
-    public InsertMassendaten(Connection con) {
+    public InsertMassendaten(Connection con, Integer userId) {
         this.con = con;
-        insertedKeys = new Hashtable();
+        this.userId = userId;
+        intervalIndex = new Hashtable<>(10);
     }
     
-    public void upsert(Integer id, java.sql.Timestamp von, Float wert) throws SQLException, InvalidRightException {
+    
+    private boolean isWriteable(Integer id) throws SQLException {    	
+    		PreparedStatement pst = con.prepareStatement("select check_write(?,?)");
+    		pst.setInt(1, id.intValue());
+        	pst.setInt(2, this.userId.intValue());
+        	ResultSet rs = pst.executeQuery();        	
+        	if (rs.next()){    		
+        		return rs.getBoolean(1);
+        	} else {
+        		return false;
+        	}         	        	     		
+    }
+    
+    
+    
+    public void insertByteArray(byte[] payload, boolean overwrite) throws SQLException, IOException, InvalidRightException {
+    	    			
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS+00");
+		dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC")); 	
+		
+		Statement st = con.createStatement();		
+		st.executeUpdate("create temp table tmp_massendaten (id int, von timestamp with time zone,wert real)");
+		
+		CopyManager cm = ((PGConnection)con.unwrap(PGConnection.class)).getCopyAPI();
+		CopyIn cin = cm.copyIn("COPY tmp_massendaten (id,von,wert) FROM STDIN WITH CSV");
+		
+		
+		
+		try (DataInputStream di = new DataInputStream(new ByteArrayInputStream(payload))){
+			while (di.available() > 0) {
+				int id = di.readInt();
+				Timestamp von = new Timestamp(di.readLong());
+				Float wert = di.readFloat();								
+				if (!wert.isNaN()){
+					StringBuffer sb = new StringBuffer();
+					sb.append(id).append(",").append(dateFormatter.format(von)).append(",").append(wert).append("\n");
+					byte[] b = sb.toString().getBytes("UTF-8");
+					cin.writeToCopy(b,0,b.length);
+					setInterval(id, von);
+				}
+			}
+		}
+		long r = cin.endCopy();
+		logger.debug(r + " records received.");
+		
+		// printTable("tmp_massendaten");
+		
+		
+		// Check Rights		
+		for(Integer id:intervalIndex.keySet()){
+			if (!isWriteable(id)){
+				st.executeUpdate("drop table if exists tmp_massendaten");		
+				throw new InvalidRightException(1, "Missing rights to insert data");
+			};	
+		}
+		
+		if (overwrite){
+			st.executeUpdate("create temp table tmp_massendaten_up as select t.* from tmp_massendaten as t, massendaten as m where m.id=t.id and m.von=t.von");
+			// printTable("tmp_massendaten_up");
+			r = st.executeUpdate("update massendaten set wert=tmp_massendaten_up.wert from tmp_massendaten_up where tmp_massendaten_up.id = massendaten.id and tmp_massendaten_up.von = massendaten.von");
+			logger.info(r + " records updated.");			
+			r = st.executeUpdate("delete from tmp_massendaten using tmp_massendaten_up where tmp_massendaten.id = tmp_massendaten_up.id and tmp_massendaten.von = tmp_massendaten_up.von");
+			// printTable("tmp_massendaten");
+			st.executeUpdate("drop table tmp_massendaten_up");						
+		} else {
+			r = st.executeUpdate("delete from tmp_massendaten t using massendaten m where t.id=m.id and t.von=m.von");
+			// logger.debug(r + " existing records skipped.");
+		}
+				
+		r = st.executeUpdate("insert into massendaten (id,von,wert) select distinct id,von,wert from tmp_massendaten");
+		logger.info(r + " records imported.");
+												
+		st.executeUpdate("drop table if exists tmp_massendaten, tmp_massendaten_up");		
+    	
+    }
+    
+    
+    
+    @SuppressWarnings("unused")
+	private void printTable(String table) {
+    	logger.debug("Table:" + table);
+    	Statement st;
+		try {
+			st = con.createStatement();
+			ResultSet rs = st.executeQuery("select * from " + table);
+			ResultSetMetaData meta = rs.getMetaData();						
+			while(rs.next()){
+				StringBuffer n = new StringBuffer();
+				for(int i=1;i<=meta.getColumnCount();i++){
+					n.append(" " + rs.getObject(i).toString());					
+				}
+				logger.debug("Row:" + n.toString());
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+    	
+    	
+    	
+		
+	}
+
+
+	public void upsert(Integer id, java.sql.Timestamp von, Short status, Float wert) throws SQLException, InvalidRightException {
     	if (logger.isDebugEnabled()){
-    		logger.debug(id + ";" + von + ";" + wert);
+    		logger.debug(id + ";" + von + ";" + wert + ";" + status);
     	}    	
     	if (ups == null) {
-            ups = con.prepareStatement("with upsert as (update massendaten set wert=? where id=? and von=? returning *)" + 
-            							"insert into massendaten (id,von,wert) select ?,?,? where not exists(select * from upsert);");                                           
+            ups = con.prepareStatement("with upsert as (update massendaten set wert=?,status=? where id=? and von=? returning *)" + 
+            							"insert into massendaten (id,von,wert,status) select ?,?,?,? where not exists(select * from upsert);");                                           
         }    	    	
     	// With
-    	ups.setFloat(1,wert.floatValue());                            
-        ups.setInt(2,id.intValue());
-        ups.setTimestamp(3,von);    
+    	ups.setFloat(1,wert.floatValue());
+    	ups.setShort(2, status);
+        ups.setInt(3,id.intValue());
+        ups.setTimestamp(4,von);    
         
         // insert 
-        ups.setInt(4,id.intValue());
-        ups.setTimestamp(5,von);
-        ups.setFloat(6,wert.floatValue());
+        ups.setInt(5,id.intValue());
+        ups.setTimestamp(6,von);
+        ups.setFloat(7,wert.floatValue());
+        ups.setShort(8, status);
         ups.execute();
         i++;
-    	setMinMax(id,von);    	
+    	setInterval(id,von);    	
     }
     
            
@@ -89,7 +225,7 @@ public class InsertMassendaten  {
         pst.setFloat(4,wert.floatValue());
         pst.executeUpdate();
         i++;
-        setMinMax(id,von);
+        setInterval(id,von);
     }
     
     public void insert(Integer id, java.sql.Timestamp von, Float wert) throws SQLException, InvalidRightException {
@@ -101,58 +237,38 @@ public class InsertMassendaten  {
         pst.setFloat(3,wert.floatValue());
         pst.executeUpdate();
         i++;
-        setMinMax(id,von);
+        setInterval(id,von);
     }
     
-    
-    
-    private void setMinMax(Integer id, java.sql.Timestamp von) {
-        ArrayList t = null;
-        if (insertedKeys.containsKey(id)) {
-            t = (ArrayList)insertedKeys.get(id);         
-            java.sql.Timestamp minVon = (java.sql.Timestamp)t.get(0);
-            if (von.before(minVon))   {
-              t.set(0,von);
-            }
-            java.sql.Timestamp maxVon = (java.sql.Timestamp)t.get(1);
-            if (von.after(maxVon))   {
-              t.set(1,von);
-            }            
+        
+    private void setInterval(Integer id, java.sql.Timestamp von) { 
+        if (intervalIndex.containsKey(id)) {
+            intervalIndex.get(id).expand(von);                        
         } else {
-                t = new ArrayList(2);
-                t.add(von); // min
-                t.add(von); // max
-                insertedKeys.put(id,t);
+            intervalIndex.put(id,new Interval(von));
         }                 
-
     }
     
-    public void updateMinMax() throws SQLException {
+    public void updateObjektInterval() throws SQLException {
         if (ustmin == null) {
            ustmin = con.prepareStatement("update objekt set rec_start = ? where id = ? and (rec_start > ? or rec_start is null)");
         }
         if (ustmax == null) {
            ustmax = con.prepareStatement("update objekt set rec_end = ? where id = ? and (rec_end < ? or rec_end is null)");
         }
-        
-        Iterator it = insertedKeys.entrySet().iterator();
-        while(it.hasNext()){
-            Map.Entry t = (Map.Entry)it.next();
-            ArrayList a = (ArrayList)t.getValue();  
-            
+                
+        for(Map.Entry<Integer, Interval> entry:intervalIndex.entrySet()){        	                    
             // min
-            ustmin.setTimestamp(1,(Timestamp)a.get(0));
-            ustmin.setInt(2,((Integer)t.getKey()).intValue());
-            ustmin.setTimestamp(3,(Timestamp)a.get(0));
+            ustmin.setTimestamp(1,entry.getValue().min);
+            ustmin.setInt(2,entry.getKey());
+            ustmin.setTimestamp(3,entry.getValue().min);
             ustmin.executeUpdate();
             
             //max
-            ustmax.setTimestamp(1,(Timestamp)a.get(1));
-            ustmax.setInt(2,((Integer)t.getKey()).intValue());
-            ustmax.setTimestamp(3,(Timestamp)a.get(1));
+            ustmax.setTimestamp(1,entry.getValue().max);
+            ustmax.setInt(2,entry.getKey());
+            ustmax.setTimestamp(3,entry.getValue().max);
             ustmax.executeUpdate();
-            
-            
         }
         ustmin.close();  ustmax.close();
     }
@@ -165,13 +281,7 @@ public class InsertMassendaten  {
         this.i = i;
     }
     
-    public boolean isKeyInserted(Integer id) {
-       return insertedKeys.containsKey(id);
-    }
-    
-    public int keysUpdated() {
-        return insertedKeys.size();
-    }
+   
     
     
 }

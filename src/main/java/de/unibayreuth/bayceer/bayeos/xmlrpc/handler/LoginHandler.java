@@ -196,7 +196,7 @@ private void authenticateDB(Integer idAuthDB, Integer idBenutzer, String login, 
 		rs1.next();
 		
 		String name = rs1.getString("name");
-		logger.debug("Trying to authenticat user " + login + " by " + name);
+		logger.debug("Trying to authenticate user " + login + " by " + name);
 
 		Properties props = new Properties();
 		props.setProperty("user",rs1.getString("username"));

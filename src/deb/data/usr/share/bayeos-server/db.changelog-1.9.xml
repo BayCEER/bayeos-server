@@ -514,5 +514,10 @@ end;$BODY$
 	
 	</changeSet>
 	
+	<changeSet id="115" author="oa">
+	    <comment>Drop rule on massendaten</comment>
+	    <sql>DROP RULE massendaten_inserts ON massendaten;</sql>
+	</changeSet>
+	
 	 	  
 </databaseChangeLog>
