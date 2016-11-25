@@ -1,8 +1,9 @@
-Package: [[name]]
+Package: bayeos-server
 Version: [[version]]
 Section: server
 Priority: optional
 Architecture: all
-Depends: postgresql (>= 9.0),  postgresql-contrib, postgresql-plperl, java7-runtime-headless, tomcat6, apache2, libapache2-mod-jk, libpq-dev
-Description: BayEOS Server a lightweight observation database
+Pre-Depends: default-jre-headless (>= 2:1.7) | java7-runtime-headless
+Depends: postgresql (>= 9.0),  postgresql-contrib, postgresql-plperl, apache2, libpq-dev
+Description: BayEOS XMLRPC Server a lightweight observation database interface
 Maintainer: oliver.archner@uni-bayreuth.de

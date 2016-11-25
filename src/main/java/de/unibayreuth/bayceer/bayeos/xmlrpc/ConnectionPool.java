@@ -11,9 +11,7 @@
 package de.unibayreuth.bayceer.bayeos.xmlrpc;
 /*
  * ConnectionPool.java
- *
- * Created on 18. Juli 2002, 16:39
- * Adapted to tomcat connection pool
+ * 
  */
 
 
@@ -21,13 +19,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.log4j.Logger;
-
 
 
 /**
@@ -40,8 +33,18 @@ public class ConnectionPool {
     
     private final static Logger logger = Logger.getLogger(ConnectionPool.class.getName());
 	
+    private static String url;
+    private static String user;
+    private static String password;
+    
+    public static void setConnection(String url, String user, String password){
+    	ConnectionPool.url = url;
+    	ConnectionPool.user = user;
+    	ConnectionPool.password = password;
+    }
+    
    
-    private static DataSource ds;
+    private static BasicDataSource ds;
     
     
     /** Sets the user id for the current session
@@ -56,21 +59,17 @@ public class ConnectionPool {
     public static Connection getPooledConnection(int userId)  throws SQLException {    	
        logger.debug("Trying to get connection from pool");   
        
-       if (ds == null) {
-    	   try {
+       if (ds == null) {    	   
     		   	logger.debug("Initialize datasource");
-   				Context initCtx = new InitialContext();			
-   				ds = (DataSource) initCtx.lookup("java:comp/env/jdbc/bayeos");
-   				
+    		   	ds = new BasicDataSource();    		   	
+    		   	ds.setDriverClassName("org.postgresql.Driver");    		   	
+    		   	ds.setUrl(url);
+    		   	ds.setUsername(user);
+    		   	ds.setPassword(password);
+    		   	ds.setMaxTotal(50);
    				logger.debug("Datasource look up completed.");
-   			} catch (NamingException e) {
-   				logger.error(e);
-   				return null; 
-   			}   
        }
-       Connection con = ds.getConnection();       
-       assert(con!=null);
-       
+       Connection con = ds.getConnection();                     
        setUserId(con,userId);
        return con;
     }

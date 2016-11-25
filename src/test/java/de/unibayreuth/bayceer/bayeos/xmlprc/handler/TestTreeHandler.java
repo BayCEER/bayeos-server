@@ -33,8 +33,4 @@ public class TestTreeHandler extends NodeTest {
 		 assertTrue((Boolean)cli.execute("TreeHandler.deleteNode", n.getId()));
 		
 	}
-
-	
-	
-
 }
