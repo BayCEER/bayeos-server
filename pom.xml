@@ -213,7 +213,6 @@
 								<data>
 									<src>${project.build.directory}/deb/data</src>
 									<type>directory</type>
-
 								</data>
 								<data>
 									<src>${project.build.directory}/${project.build.finalName}.jar</src>
@@ -242,7 +241,7 @@
 									<descriptorRef>artifact</descriptorRef>
 								</assembly>
 								<cmd>
-									<shell>java -jar /maven/bayeos-server.docker</shell>
+									<shell>java -jar /maven/bayeos-server.docker ${server.port} ${server.contextPath}</shell>
 								</cmd>
 							</build>
 							<run>
@@ -251,7 +250,7 @@
 								</ports>
 								<wait>
 									<http>
-										<url>http://docker:${server.port}/XMLServlet</url>
+										<url>http://docker:${server.port}${server.contextPath}</url>
 									</http>
 									<time>10000</time>
 								</wait>
@@ -264,14 +263,22 @@
 						<image>
 							<alias>db</alias>
 							<name>bayceer/bayeos-server-db:${project.version}</name>
+							
 							<build>
+								<from>postgres:9.4</from>
+								<runCmds>
+									<runCmd>apt-get update &amp;&amp; apt-get install -y postgresql-plperl-9.4 libpq-dev libmath-spline-perl</runCmd>
+									<runCmd>localedef -i de_DE -c -f UTF-8 -A /usr/share/locale/locale.alias de_DE.UTF-8</runCmd>
+									<runCmd>echo "host all  all    0.0.0.0/0  md5" >> /var/lib/postgresql/data/pg_hba.conf</runCmd>																		
+								</runCmds>
 								<env>
-									 <POSTGRES_USER>${dbUser}}</POSTGRES_USER>
-									 <POSTGRES_PASSWORD>${dbPassword}</POSTGRES_PASSWORD>								 								
+									 <POSTGRES_USER>${dbUser}</POSTGRES_USER>
+									 <POSTGRES_PASSWORD>${dbPassword}</POSTGRES_PASSWORD>
+									 <POSTGRES_INITDB_ARGS>--locale de_DE.UTF-8</POSTGRES_INITDB_ARGS> 								 								
 								</env>							 							
-								<from>postgres-default</from>
+								
 								<assembly>		
-									<inline>
+									<inline>									
 									<fileSets>
 										<fileSet>
 											<directory>${project.basedir}/target/deb/data/usr/share/bayeos-server/sql</directory>
