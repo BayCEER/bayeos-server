@@ -174,46 +174,31 @@ private Integer getBenutzerId(String login)  {
 	
 	
 	
-	
-	
-	 
-	
-	
 
 }
 
 
 private void authenticateDB(Integer idAuthDB, Integer idBenutzer, String login, String passWord) throws XmlRpcException  {
-	ResultSet rs1 = null;
-	ResultSet rs2 = null;
-	PreparedStatement st = null;
-	Connection conAuth = null;
+	ResultSet rs = null;	
+	PreparedStatement st = null;	
 	Connection con = null;
 	try {
 		
 		con = ConnectionPool.getPooledConnection();
-		rs1 = SelectUtils.getResultSet(con, "select url, name, query_stmt, username, password from auth_db where id = " + idAuthDB);
-		rs1.next();
 		
-		String name = rs1.getString("name");
-		logger.debug("Trying to authenticate user " + login + " by " + name);
-
-		Properties props = new Properties();
-		props.setProperty("user",rs1.getString("username"));
-		props.setProperty("password",rs1.getString("password"));		
-		conAuth = DriverManager.getConnection(rs1.getString("url"), props);						
-		st = conAuth.prepareStatement(rs1.getString("query_stmt"));		
+		logger.debug("Trying to authenticate user " + login + " by db");
+		
+		st = con.prepareStatement("select crypt(?,substr(pw,1,2)) = pw from benutzer where login like ? and locked = false;");		
 		st.setString(1,passWord);
-		st.setString(2,login );
+		st.setString(2,login);		
+		rs = st.executeQuery();
+		rs.next();
 		
-		rs2 = st.executeQuery();
-		rs2.next();
-		
-		if (rs2.getBoolean(1)){
-			logger.info("User " + login + " authenticated by " + name);
+		if (rs.getBoolean(1)){
+			logger.info("User " + login + " authenticated by db");
 			return; // Authentication successful
 		} else {
-			logger.warn("Failed to authenticate user " + login + " by " + name);
+			logger.warn("Failed to authenticate user " + login + " by db");
 			throw new XmlRpcException(0, "Error authenticating user " + login );			
 		}
 		 
@@ -223,7 +208,7 @@ private void authenticateDB(Integer idAuthDB, Integer idBenutzer, String login, 
 		throw new XmlRpcException(0, "Error authenticating user " + login );
 	} finally {		
 			try {con.close();} catch (SQLException e) {}
-			try {conAuth.close();} catch (SQLException e) {}			
+					
 	}
 	
 

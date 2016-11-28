@@ -37,14 +37,14 @@ public class ConnectionPool {
     private static String user;
     private static String password;
     
-    public static void setConnection(String url, String user, String password){
-    	ConnectionPool.url = url;
-    	ConnectionPool.user = user;
-    	ConnectionPool.password = password;
+    public static void setConnection(String _url, String _user, String _password){    	
+    	url = _url;
+    	user = _user;
+    	password = _password;
     }
     
    
-    private static BasicDataSource ds;
+    private static BasicDataSource ds = null;
     
     
     /** Sets the user id for the current session
@@ -60,14 +60,14 @@ public class ConnectionPool {
        logger.debug("Trying to get connection from pool");   
        
        if (ds == null) {    	   
-    		   	logger.debug("Initialize datasource");
+    		   	logger.info("Initialize datasource");
     		   	ds = new BasicDataSource();    		   	
     		   	ds.setDriverClassName("org.postgresql.Driver");    		   	
     		   	ds.setUrl(url);
     		   	ds.setUsername(user);
     		   	ds.setPassword(password);
     		   	ds.setMaxTotal(50);
-   				logger.debug("Datasource look up completed.");
+   				logger.info("Datasource look up completed.");
        }
        Connection con = ds.getConnection();                     
        setUserId(con,userId);

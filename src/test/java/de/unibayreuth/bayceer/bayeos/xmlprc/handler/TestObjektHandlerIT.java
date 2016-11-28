@@ -6,14 +6,15 @@ import java.util.GregorianCalendar;
 import java.util.Vector;
 
 import org.apache.xmlrpc.XmlRpcException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.unibayreuth.bayceer.bayeos.client.AbstractClientTest;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektNode;
 
-public class TestObjektHandler extends AbstractClientTest{	
-	@Test
+public class TestObjektHandlerIT extends AbstractClientTest{	
+	 @Ignore @Test
 	public void testUpdateDataFrame()  {
 		// Get Root
 		

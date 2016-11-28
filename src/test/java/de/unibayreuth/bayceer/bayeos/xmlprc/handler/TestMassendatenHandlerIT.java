@@ -3,12 +3,15 @@ package de.unibayreuth.bayceer.bayeos.xmlprc.handler;
 import java.nio.ByteBuffer;
 import java.util.Vector;
 
+import org.junit.Ignore;
+import org.junit.Test;
+
 import de.unibayreuth.bayceer.bayeos.client.NodeTest;
 
-public class TestMassendatenHandler extends NodeTest {
+public class TestMassendatenHandlerIT extends NodeTest {
 	
 	
-	
+	 @Ignore @Test
 	public void testAddUpsertSingle() throws Exception {
 		Vector v = new Vector();
 		v.add(testNode.getId());
@@ -48,6 +51,7 @@ public class TestMassendatenHandler extends NodeTest {
 	
 			
 	
+	 @Ignore @Test
 	public void testAddUpsertMany() throws Exception {						
 		// Create Payload 
 		ByteBuffer bb = ByteBuffer.allocate(16);
