@@ -89,9 +89,7 @@
 					<verbose>true</verbose>
 					<useColor>true</useColor>
 					<images>
-					
-					
-						<image>
+						<image>							
 							<alias>postgres-perl</alias>
 							<name>bayceer/postgres-perl:9.4</name>							
 							<build>								
@@ -102,7 +100,7 @@
 							 </build>													
 						</image>
 						<image>
-							<alias>db</alias>
+							<alias>db</alias>							
 							<name>bayceer/bayeos-server-db:${project.version}</name>
 							<build>								
 								<from>bayceer/postgres-perl:9.4</from>
@@ -128,6 +126,9 @@
 								</assembly>
 							</build>
 							<run>
+							<labels>
+							
+							</labels>
 								<wait>
 									<log>PostgreSQL init process complete; ready for start up.</log>
 									<time>60000</time>									
@@ -142,6 +143,7 @@
 					
 						<image>
 							<alias>bayeos-server</alias>
+							
 							<name>bayceer/bayeos-server:${project.version}</name>
 							<build>								
 								<from>java:7</from>
@@ -153,6 +155,11 @@
 								</cmd>
 							</build>
 							<run>
+								
+								<labels>
+    								<environment>development</environment>
+    								<version>${project.version}</version>
+  								</labels>
 								<ports>
 									<port>${server.port}:${server.port}</port>
 								</ports>

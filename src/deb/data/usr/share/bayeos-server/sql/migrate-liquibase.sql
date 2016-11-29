@@ -19,7 +19,7 @@ BEGIN
 	);
 	ALTER TABLE schema_version OWNER TO bayeos;
 	ALTER TABLE ONLY schema_version ADD CONSTRAINT schema_version_pk PRIMARY KEY (installed_rank);
-	INSERT INTO schema_version VALUES (1, '2.00', 'bayeos', 'SQL', 'V2.00__bayeos.sql', -459484018, 'bayeos', now(), 1667, true);
+	INSERT INTO schema_version VALUES (1, '1.99', 'bayeos', 'SQL', 'V1.99__bayeos.sql', -459484018, 'bayeos', now(), 1667, true);
 	CREATE INDEX schema_version_s_idx ON schema_version USING btree (success);
 	DROP TABLE IF EXISTS databasechangelog;
 	DROP TABLE IF EXISTS databasechangeloglock;

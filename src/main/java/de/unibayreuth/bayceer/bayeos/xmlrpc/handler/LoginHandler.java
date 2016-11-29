@@ -10,17 +10,11 @@
  ******************************************************************************/
 package de.unibayreuth.bayceer.bayeos.xmlrpc.handler;
 
-
-		
-
-
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -36,234 +30,144 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.Session;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.XMLServlet;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILoginHandler;
 
-
 public class LoginHandler implements ILoginHandler {
-    final static Logger logger = Logger.getLogger(LoginHandler.class.getName());
-	             
-    
-    public LoginHandler(){
-    	
-    }
-    
+	final static Logger logger = Logger.getLogger(LoginHandler.class.getName());
 
+	public LoginHandler() {
 
-	public Vector createSession(String Login,String PassWord) throws XmlRpcException {
-                
-          Vector result = new Vector();                     
-          Integer userId = authenticate(Login,PassWord);          
-          Integer sessionId = Session.create(userId);                                        
-          result.add(sessionId);
-          result.add(userId);
-          return result;
-	
-   }
-        
-        
-   private Integer authenticate(String Login, String PassWord) throws XmlRpcException {
-	   
-	   Integer idBenutzer = null;
-       Integer idAuthLdap = null;
-	   	   	   
-	   Connection con = null;
-	   ResultSet rs = null;
-	   PreparedStatement pst = null;
-	   
-	   String ip = XMLServlet.getClientIpAddress();
-	   logger.info("Authentication User:" + Login + " from IP:" + ip );
-	   	   
-	   
-	   // Authenticate by ip without password  
-	   try {
-	   	   
-	   con = ConnectionPool.getPooledConnection();
-	   pst = con.prepareStatement(	"select access from auth_ip " + 
-			   						"where ?::inet<<=network and (login=? or login='*') " +
-			   						"order by case when login='*' then 1 else 0 end, "+  /*Direkte Nutzer kommen zuerst*/
-			   						"masklen(network) desc, " + /*Genauere Einträge zuerst */
-			   						"access" /*TRUST vor DENY vor PASSWORD*/
-			   						);		   
-	   pst.setString(1, ip);
-	   pst.setString(2, Login);
-	   rs = pst.executeQuery();	   
-	   if (rs.next()){
-		   String access = rs.getString(1);		   
-		   if (access.equals("TRUST")){			   			   
-			   idBenutzer = getBenutzerId(Login);
-			   if (idBenutzer == null){
-				   throw new XmlRpcException(0, "Error authenticating user " + Login + "." );
-			   } else {
-				   return idBenutzer;   
-			   }			   
-		   } else if (access.equals("DENY")){
-			   throw new XmlRpcException(0, "Error authenticating user " + Login + "." );
-		   }		   
-	   }
-	   
-	   
- 	   String query = "select id, fk_auth_ldap, fk_auth_db from benutzer where login = ? and locked = false";
- 	   pst = con.prepareStatement(query); 	   
-       pst.setString(1, Login);            
-       rs = pst.executeQuery();
-       if (!rs.next()) {
-    	   throw new XmlRpcException(0, "Error authenticating user " + Login + "." );
-       }
-       
-       idBenutzer = rs.getInt(1);
-       idAuthLdap = rs.getInt(2);
-
-       if (!rs.wasNull()){    
-     	   authenticatLdap(idAuthLdap, idBenutzer,Login,PassWord);
-     	   return idBenutzer;
-       } else {    	  
-     	  Integer idAuthDB = rs.getInt(3);    	  
-     	  if (!rs.wasNull()){
-     		  authenticateDB(idAuthDB, idBenutzer,Login,PassWord);
-     		  return idBenutzer;
-     		  
-     	  } else {
-     		  throw new XmlRpcException(0,"No authentication method defined.");     		  
-     	  }    	  
-       }
-       
-	   } catch (SQLException e){
-		   logger.error(e.getMessage());
-		   throw new XmlRpcException(0, "Error authenticating user " + Login + "." );
-	   } finally {
-		   try {
-			   if (pst != null) {
-				   pst.close();
-			   }
-			   if (con != null) {
-				   con.close();
-			   }
-		} catch (SQLException e) {
-			logger.error(e.getMessage());
-		}
-	   }
-   }
-
-
-private Integer getBenutzerId(String login)  {
-	
-	ResultSet rs = null;
-	PreparedStatement st = null;
-	Connection con = null;
-	
-	try {	
-	con = ConnectionPool.getPooledConnection();
-	
-	st = con.prepareStatement("select id from benutzer where login like ?");
-	st.setString(1, login);
-	rs = st.executeQuery();	
-	if (rs.next()) {
-		return rs.getInt(1); 
-	} else {
-		return null;
-	}	
-	} catch (SQLException e){
-		logger.error(e.getMessage());
-		return null;
-	} finally {
-		try {
-			st.close();
-			con.close();
-		} catch (SQLException e) {
-			logger.error(e.getMessage());
-		}
 	}
-	
-	
-	
 
-}
+	public Vector createSession(String Login, String PassWord) throws XmlRpcException {
 
+		Vector result = new Vector();
+		Integer userId = authenticate(Login, PassWord);
+		Integer sessionId = Session.create(userId);
+		result.add(sessionId);
+		result.add(userId);
+		return result;
 
-private void authenticateDB(Integer idAuthDB, Integer idBenutzer, String login, String passWord) throws XmlRpcException  {
-	ResultSet rs = null;	
-	PreparedStatement st = null;	
-	Connection con = null;
-	try {
+	}
+
+	private Integer authenticate(String login, String passWord) throws XmlRpcException {
+
+		Integer idBenutzer = getBenutzerId(login);
+		if (idBenutzer == null) {
+			throw new XmlRpcException(0, "Error authenticating user " + login + ".");
+		}
+
+		if (authenticateIP(idBenutzer, login, XMLServlet.getClientIpAddress())) {
+			return idBenutzer;
+		}
 		
-		con = ConnectionPool.getPooledConnection();
+		if (authenticateDB(idBenutzer, login, passWord)) {
+			return idBenutzer;
+		}
 		
+		if (authenticatLdap(idBenutzer, login, passWord)) {
+			return idBenutzer;
+		}
+
+		throw new XmlRpcException(0, "Error authenticating user " + login + ".");
+	}
+
+	private boolean authenticateIP(Integer id, String login, String ip) {
+		// Authenticate by ip without password
+		logger.info("Trying to authenticate user:" + login + " by IP:" + ip);
+		String sql = "select access from auth_ip " + "where ?::inet<<=network and (login=? or login='*') "
+				+ "order by case when login='*' then 1 else 0 end, "
+				+ /* Direkte Nutzer kommen zuerst */
+				"masklen(network) desc, " + /* Genauere Einträge zuerst */
+				"access"; /* TRUST vor DENY vor PASSWORD */
+		try (Connection con = ConnectionPool.getPooledConnection(); PreparedStatement pst = con.prepareStatement(sql)) {
+			pst.setString(1, ip);
+			pst.setString(2, login);
+			ResultSet rs = pst.executeQuery();
+			if (rs.next()) {
+				String access = rs.getString(1);
+				if (access.equals("TRUST")) {
+					return true;
+				} else if (access.equals("DENY")) {
+					return false;
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return false;
+	}
+
+	private boolean authenticateDB(Integer idBenutzer, String login, String passWord) {
+		String sql = "select crypt(?,substr(pw,1,2)) = pw from benutzer where login like ?";
 		logger.debug("Trying to authenticate user " + login + " by db");
-		
-		st = con.prepareStatement("select crypt(?,substr(pw,1,2)) = pw from benutzer where login like ? and locked = false;");		
-		st.setString(1,passWord);
-		st.setString(2,login);		
-		rs = st.executeQuery();
-		rs.next();
-		
-		if (rs.getBoolean(1)){
-			logger.info("User " + login + " authenticated by db");
-			return; // Authentication successful
-		} else {
-			logger.warn("Failed to authenticate user " + login + " by db");
-			throw new XmlRpcException(0, "Error authenticating user " + login );			
+		try (Connection con = ConnectionPool.getPooledConnection(); PreparedStatement pst = con.prepareStatement(sql)) {
+			pst.setString(1, passWord);
+			pst.setString(2, login);
+			ResultSet rs = pst.executeQuery();
+			rs.next();
+			if (rs.getBoolean(1)) {
+				logger.info("User " + login + " authenticated by db");
+				return true; // Authentication successful
+			} else {
+				logger.warn("Failed to authenticate user " + login + " by db");
+				return false;
+			}
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+			return false;
 		}
-		 
-
-	} catch (SQLException e) {
-		logger.error(e.getMessage());
-		throw new XmlRpcException(0, "Error authenticating user " + login );
-	} finally {		
-			try {con.close();} catch (SQLException e) {}
-					
-	}
-	
-
-}
-
-
-private void authenticatLdap(Integer idAuthLdap, Integer idBenutzer, String login, String passWord) throws XmlRpcException {
-	ResultSet rs1 = null;
-	int ldapVersion = LDAPConnection.LDAP_V3;
-	LDAPConnection lc = null;
-	Connection con = null;
-	try {
-	con = ConnectionPool.getPooledConnection();
-	rs1 = SelectUtils.getResultSet(con, "select name, host, dn, ssl, port from auth_ldap where id = " + idAuthLdap);
-	rs1.next();
-	String name = rs1.getString("name");
-	logger.debug("Trying to authenticat user " + login + " by " + name);	
-	
-	if (rs1.getBoolean("ssl")){
-		lc = new LDAPConnection(new LDAPJSSESecureSocketFactory());
-	} else {		
-		lc = new LDAPConnection();
-	}		
-	lc.connect(rs1.getString("host"), rs1.getInt("port") );
-    lc.bind(ldapVersion, rs1.getString("dn").replace(":?", login), passWord.getBytes("UTF8") );
-    if (lc.isBound()) {
-    	logger.info("User " + login + " authenticated by " + name);
-    } else {
-    	logger.warn("Failed to authenticate user: " + login + " by " + name);
-		throw new XmlRpcException(0, "Error authenticating user: " + login );
-    }
-  } catch (SQLException e) {
-	   logger.error(e.getMessage());
-	   throw new XmlRpcException(0, "Error authenticating user: " + login );
-  } catch (LDAPException e) {
-	  logger.error(e.getMessage());
-	   throw new XmlRpcException(0, "Error authenticating user: " + login );	
-} catch (UnsupportedEncodingException e) {
-	  logger.error(e.getMessage());
-	   throw new XmlRpcException(0, "Error authenticating user: " + login );
-} finally {
-	try {
-		con.close();		
-	} catch (SQLException e) {
-		logger.error(e.getMessage());
 	}
 
-	
+	private boolean authenticatLdap(Integer idBenutzer, String login, String passWord) {
+
+		int ldapVersion = LDAPConnection.LDAP_V3;
+		LDAPConnection lc = null;
+
+		try (Connection con = ConnectionPool.getPooledConnection()) {
+			ResultSet rs1 = SelectUtils.getResultSet(con,
+					"select name, host, dn, ssl, port from benutzer, auth_ldap where benutzer.fk_auth_ldap = auth_ldap.id and benutzer.id = "
+							+ idBenutzer);
+			if (!rs1.next()) {
+				return false;
+			}
+
+			String name = rs1.getString("name");
+			logger.debug("Trying to authenticat user " + login + " by LDAP:" + name);
+
+			if (rs1.getBoolean("ssl")) {
+				lc = new LDAPConnection(new LDAPJSSESecureSocketFactory());
+			} else {
+				lc = new LDAPConnection();
+			}
+			lc.connect(rs1.getString("host"), rs1.getInt("port"));
+			lc.bind(ldapVersion, rs1.getString("dn").replace(":?", login), passWord.getBytes("UTF8"));
+			if (lc.isBound()) {
+				logger.info("User " + login + " authenticated by " + name);
+				return true;
+			} else {
+				logger.warn("Failed to authenticate user: " + login + " by " + name);
+				return false;
+			}
+		} catch (SQLException | LDAPException | UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+			return false;
+		}
+	}
+
+	private Integer getBenutzerId(String login) {
+		try (Connection con = ConnectionPool.getPooledConnection();
+			 PreparedStatement st = con.prepareStatement("select id from benutzer where login like ? and locked = false")) {
+			st.setString(1, login);
+			ResultSet rs = st.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1);
+			} else {
+				return null;
+			}
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+			return null;
+		}
+
+	}
+
 }
-	
-}
-        
-        
-    
-                
-}
-       
-        
