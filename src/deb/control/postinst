@@ -11,6 +11,8 @@ chown bayeos:bayeos /var/lib/bayeos-server/bayeos-server.sh
 ln -s /var/lib/bayeos-server/bayeos-server.sh /etc/init.d/bayeos-server
 update-rc.d bayeos-server defaults
 service bayeos-server start
-a2enmod proxy proxy_http
-a2enconf bayeos-server.conf
-service apache2 reload   
+
+# Apache integration 
+a2enmod proxy proxy_http ssl
+a2enconf bayeos-server.conf bayeos-server-ssl.conf
+service apache2 restart   

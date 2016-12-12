@@ -60,14 +60,13 @@ public class ConnectionPool {
        logger.debug("Trying to get connection from pool");   
        
        if (ds == null) {    	   
-    		   	logger.info("Initialize datasource");
+    		   	logger.info("Initialize datasource:" + url);
     		   	ds = new BasicDataSource();    		   	
     		   	ds.setDriverClassName("org.postgresql.Driver");    		   	
     		   	ds.setUrl(url);
     		   	ds.setUsername(user);
     		   	ds.setPassword(password);
-    		   	ds.setMaxTotal(50);
-   				logger.info("Datasource look up completed.");
+    		   	ds.setMaxTotal(50);   				
        }
        Connection con = ds.getConnection();                     
        setUserId(con,userId);

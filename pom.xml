@@ -24,29 +24,69 @@
 	<description>bayeos-server</description>
 
 	<properties>
+		<release>jessie</release>
+		<java.version>1.7</java.version>
+		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<release>jessie</release>
+		
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
-		<java.version>1.7</java.version>
-		<jetty.version>9.2.19.v20160908</jetty.version>
-		<dbUser>bayeos</dbUser>
-		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>
-		<timeZone>GMT+1</timeZone>
+
+		
+		<db.user>bayeos</db.user>
+		<db.password>4336bc9de7a6b11940e897ee22956d51</db.password>
+		
+		<server.timezone>GMT+1</server.timezone>
 		<server.port>9002</server.port>
 		<server.contextPath>/XMLServlet</server.contextPath>
-		<logLevel>INFO</logLevel>
+		
+		<log.level>INFO</log.level>
+		<log.path>/var/log/bayeos-server.log</log.path>
 	</properties>
 
 	<profiles>
 		<profile>
-			<id>prod</id>
+			<id>prod</id>			
 			<properties>
-				<dbUrl>jdbc:postgresql://localhost/bayeos</dbUrl>
-				<logPath>/var/log/bayeos-server.log</logPath>
+				<db.url>jdbc:postgresql://localhost/bayeos</db.url>				
 				<skipTests>true</skipTests>
 			</properties>
+			<build>
+			<plugins>
+			<plugin>
+				<!-- Creates the debian deb package -->
+				<artifactId>jdeb</artifactId>
+				<groupId>org.vafer</groupId>
+				<version>1.5</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+						<configuration>
+							<controlDir>${project.build.directory}/deb/control</controlDir>
+							<deb>${project.build.directory}/${project.artifactId}-${project.version}+${release}.deb</deb>
+							<verbose>false</verbose>
+							<dataSet>
+								<data>
+									<src>${project.build.directory}/deb/data</src>
+									<type>directory</type>
+								</data>
+								<data>
+									<src>${project.build.directory}/${project.build.finalName}.jar</src>
+									<dst>/var/lib/bayeos-server/bayeos-server.jar</dst>
+									<type>file</type>
+								</data>
+							</dataSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			</plugins>
+			</build>
 		</profile>
 
 		<profile>
@@ -55,29 +95,46 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<docker.hostname>132.180.112.244</docker.hostname>
+				<docker.hostname>docker</docker.hostname>
 				<docker.host>https://${docker.hostname}:2376</docker.host>
-				<dbUrl>jdbc:postgresql://db/bayeos</dbUrl>
-				<logPath>/var/log/bayeos-server.log</logPath>
+				<db.url>jdbc:postgresql://db/bayeos</db.url>				
 			</properties>
-		</profile>
-	</profiles>
+			<build>
+			<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.10</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 
-	<build>
-		<finalName>bayeos-server</finalName>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-			<resource>
-				<directory>src/deb</directory>
-				<filtering>true</filtering>
-				<targetPath>${project.build.directory}/deb</targetPath>
-			</resource>
-		</resources>
-
-		<plugins>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.17</version>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>verify</id>
+						<goals>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<systemPropertyVariables>
+						<server.url>http://${docker.hostname}:${server.port}${server.contextPath}</server.url>
+						<server.user>root</server.user>
+						<server.password>bayeos</server.password>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 			<plugin>
 				<!-- Runs the current version on docker -->
 				<groupId>io.fabric8</groupId>
@@ -109,8 +166,8 @@
 									<runCmd>echo "host  all  all  0.0.0.0/0  md5" >> /var/lib/postgresql/data/pg_hba.conf</runCmd>
 								</runCmds>								
 								<env>
-									<POSTGRES_USER>${dbUser}</POSTGRES_USER>
-									<POSTGRES_PASSWORD>${dbPassword}</POSTGRES_PASSWORD>
+									<POSTGRES_USER>${db.user}</POSTGRES_USER>
+									<POSTGRES_PASSWORD>${db.password}</POSTGRES_PASSWORD>
 									<POSTGRES_INITDB_ARGS>--locale de_DE.UTF-8</POSTGRES_INITDB_ARGS>
 								</env>
 								<assembly>
@@ -124,6 +181,10 @@
 										</fileSets>
 									</inline>
 								</assembly>
+								 <tags>
+       						        <tag>latest</tag>
+                    				<tag>${project.version}</tag>                    				
+								</tags>
 							</build>
 							<run>
 							<labels>
@@ -153,6 +214,10 @@
 								<cmd>
 									<shell>java -jar /maven/bayeos-server.jar ${server.port} ${server.contextPath}</shell>
 								</cmd>
+								<tags>
+       						        <tag>latest</tag>
+                    				<tag>${project.version}</tag>                    				
+								</tags>
 							</build>
 							<run>
 								
@@ -200,20 +265,30 @@
 				</executions>
 			</plugin>
 			
+			</plugins>
 			
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>de.unibayreuth.bayceer.bayeos.server.App</mainClass>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
+			
+			</build>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>bayeos-server</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/deb</directory>
+				<filtering>true</filtering>
+				<targetPath>${project.build.directory}/deb</targetPath>
+			</resource>
+		</resources>
+
+		<plugins>
+			
+			
 			<plugin>
 				<!-- Filtering of user defined variables in resources folders -->
 				<groupId>org.apache.maven.plugins</groupId>
@@ -241,75 +316,20 @@
 						<goals>
 							<goal>shade</goal>
 						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-
-			<plugin>
-				<!-- Creates the debian deb package -->
-				<artifactId>jdeb</artifactId>
-				<groupId>org.vafer</groupId>
-				<version>1.5</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>jdeb</goal>
-						</goals>
 						<configuration>
-							<controlDir>${project.build.directory}/deb/control</controlDir>
-							<deb>${project.build.directory}/${project.artifactId}-${project.version}+${release}.deb</deb>
-							<verbose>false</verbose>
-							<dataSet>
-								<data>
-									<src>${project.build.directory}/deb/data</src>
-									<type>directory</type>
-								</data>
-								<data>
-									<src>${project.build.directory}/${project.build.finalName}.jar</src>
-									<dst>/var/lib/bayeos-server/bayeos-server.jar</dst>
-									<type>file</type>
-								</data>
-							</dataSet>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>de.unibayreuth.bayceer.bayeos.server.App</mainClass>
+								</transformer>
+							</transformers>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.10</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
 
-			<plugin>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>2.17</version>
-				<executions>
-					<execution>
-						<id>integration-test</id>
-						<goals>
-							<goal>integration-test</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>verify</id>
-						<goals>
-							<goal>verify</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<systemPropertyVariables>
-						<server.url>http://${docker.hostname}:${server.port}${server.contextPath}</server.url>
-						<server.user>root</server.user>
-						<server.password>bayeos</server.password>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
+
+			
+			
 </plugins>
 </build>
 
@@ -317,13 +337,13 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>${jetty.version}</version>
+			<version>9.2.19.v20160908</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>${jetty.version}</version>
+			<version>9.2.19.v20160908</version>
 		</dependency>
 
 		<dependency>
