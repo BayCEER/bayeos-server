@@ -1,7 +1,5 @@
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-/.settings
+/target/
+/.mvn/
+/.settings/
+.project
+.classpath
