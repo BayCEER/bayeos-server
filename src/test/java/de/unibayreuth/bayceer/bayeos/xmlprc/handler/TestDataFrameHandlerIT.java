@@ -19,7 +19,7 @@ import de.unibayreuth.bayceer.bayeos.objekt.ObjektNode;
 public class TestDataFrameHandlerIT extends AbstractClientTest{
 			
 	
-	 @Ignore @Test(timeout=5000)
+	@Ignore @Test(timeout=5000)
 	public void testWritePerfomance() {	
 		try {
 			ObjektNode rootNode = new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			

@@ -16,7 +16,7 @@ public class App {
 	public static void main(String[] args) throws Exception {
 		
 		
-		Integer port = 9002;
+		Integer port = 5532;
 		String contextPath = "/XMLServlet";
 				
 		if (args.length == 2) {

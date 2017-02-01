@@ -8,11 +8,11 @@ chmod +x /usr/share/bayeos-server/pg_postinst.sh
 su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
 chmod +x /var/lib/bayeos-server/bayeos-server.sh
 chown bayeos:bayeos /var/lib/bayeos-server/bayeos-server.sh
-ln -s /var/lib/bayeos-server/bayeos-server.sh /etc/init.d/bayeos-server
+ln -fs /var/lib/bayeos-server/bayeos-server.sh /etc/init.d/bayeos-server
 update-rc.d bayeos-server defaults
 service bayeos-server start
 
 # Apache integration 
 a2enmod proxy proxy_http ssl
-a2enconf bayeos-server.conf bayeos-server-ssl.conf
+a2enconf bayeos-server.conf
 service apache2 restart   

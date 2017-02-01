@@ -38,7 +38,7 @@
 		<db.password>4336bc9de7a6b11940e897ee22956d51</db.password>
 		
 		<server.timezone>GMT+1</server.timezone>
-		<server.port>9002</server.port>
+		<server.port>5532</server.port>
 		<server.contextPath>/XMLServlet</server.contextPath>
 		
 		<log.level>INFO</log.level>
@@ -207,7 +207,7 @@
 							
 							<name>bayceer/bayeos-server:${project.version}</name>
 							<build>								
-								<from>java:7</from>
+								<from>java:7</from>								
 								<assembly>
 									<descriptorRef>artifact</descriptorRef>
 								</assembly>
