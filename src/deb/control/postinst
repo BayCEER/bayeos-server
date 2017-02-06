@@ -4,6 +4,8 @@ if ! id bayeos > /dev/null 2>&1
 then	
 	useradd bayeos
 fi
+
+service postgresql start 
 chmod +x /usr/share/bayeos-server/pg_postinst.sh
 su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
 chmod +x /var/lib/bayeos-server/bayeos-server.sh
