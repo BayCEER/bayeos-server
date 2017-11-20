@@ -26,7 +26,7 @@ public class App {
 		
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-         
+                 
         
         log.info("Running server on port:" + port);
                 

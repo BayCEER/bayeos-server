@@ -3,7 +3,7 @@ Version: ${project.version}
 Section: server
 Priority: optional
 Architecture: all
-Pre-Depends: default-jre-headless (>= 2:1.7) | java7-runtime-headless
+Pre-Depends: default-jre-headless (>= 2:1.8) | java8-runtime-headless
 Depends: postgresql (>= 9.0),  postgresql-contrib, postgresql-plperl, apache2, libpq-dev
 Recommends: ssl-cert
 Description: BayEOS XMLRPC Server a lightweight observation database interface
