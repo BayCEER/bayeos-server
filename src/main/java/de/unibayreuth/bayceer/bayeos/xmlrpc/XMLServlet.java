@@ -135,7 +135,14 @@ public class XMLServlet extends HttpServlet {
 		ServletOutputStream out = res.getOutputStream();
 						
 		
-		threadLocal.set(req.getRemoteAddr());				
+		String ip = req.getHeader("X-Forwarded-For");
+		
+		if (ip != null) {
+			threadLocal.set(ip);
+		} else {
+			threadLocal.set(req.getRemoteAddr());		
+		}
+						
 		
 		String auth = req.getHeader("Authentication");
 		if (auth != null)
