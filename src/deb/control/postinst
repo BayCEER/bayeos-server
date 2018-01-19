@@ -15,6 +15,6 @@ update-rc.d bayeos-server defaults
 service bayeos-server start
 
 # Apache integration 
-a2enmod proxy proxy_http ssl
+a2enmod proxy proxy_http ssl remoteip
 a2enconf bayeos-server.conf
 service apache2 restart   
