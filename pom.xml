@@ -4,7 +4,7 @@
 
 	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 	<artifactId>bayeos-server</artifactId>
-	<version>2.0.2</version>
+	<version>2.0.4</version>
 	<packaging>jar</packaging>
 
 	<licenses>
