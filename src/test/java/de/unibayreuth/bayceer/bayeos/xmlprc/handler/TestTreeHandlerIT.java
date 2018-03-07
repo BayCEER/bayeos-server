@@ -4,14 +4,15 @@ package de.unibayreuth.bayceer.bayeos.xmlprc.handler;
 import java.util.Vector;
 
 import org.apache.xmlrpc.XmlRpcException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.unibayreuth.bayceer.bayeos.client.NodeTest;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektNode;
 
-public class TestTreeHandler extends NodeTest {
+public class TestTreeHandlerIT extends NodeTest {
 	
-	@Test
+	 @Ignore @Test
 	public void testGetRoot() throws XmlRpcException {
 		Vector r = (Vector) cli.execute("TreeHandler.getRoot", "messung_%",false,"week",null);		
 		assertNull(r);
@@ -23,7 +24,7 @@ public class TestTreeHandler extends NodeTest {
 		assertNotNull(r);
 	}
 	
-	@Test
+	 @Ignore @Test
 	public void testfindOrSaveNode() throws XmlRpcException {								
 		 ObjektNode n = new ObjektNode((Vector) cli.execute("TreeHandler.findOrSaveNode", "messung_ordner","TestNode", rootNode.getId()));
 		 assertTrue(n.getId()!=rootNode.getId());
@@ -33,8 +34,4 @@ public class TestTreeHandler extends NodeTest {
 		 assertTrue((Boolean)cli.execute("TreeHandler.deleteNode", n.getId()));
 		
 	}
-
-	
-	
-
 }

@@ -9,6 +9,9 @@
  *     University of Bayreuth - BayCEER - initial API and implementation
  ******************************************************************************/
 package de.unibayreuth.bayceer.bayeos.xmlrpc;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
@@ -21,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.apache.xmlrpc.Base64;
 import org.apache.xmlrpc.OctetServer;
 import org.apache.xmlrpc.OctetServerException;
@@ -47,45 +49,51 @@ public class XMLServlet extends HttpServlet {
 
 	protected static XmlRpcServer xmlRpcServer;
 	protected static OctetServer octetServer;
-	protected final static Logger logger = Logger.getRootLogger();
+	protected final static Logger log = Logger.getRootLogger();
+	
 	private Integer sessionId, userId;
 	
 	private static ThreadLocal threadLocal = new ThreadLocal();
 	
+	private String version = "";
 
 
 	/**
 	 * Initializes the servlet.
 	 */
-	public void init(ServletConfig config) throws ServletException {
-	     	
-		
-		// Logging
-		String logPath = config.getServletContext().getRealPath("/WEB-INF/log4j.properties");
-		if (logPath != null) {
-			PropertyConfigurator.configureAndWatch(logPath, 60 * 1000 * 5); 
-			// Check changes every 5 minutes
-			logger.debug("Read out configuration from: " + logPath + ".");
-		} else {
-			logger.warn("File: " + logPath + " not found!");
+	public void init(ServletConfig config) throws ServletException {     					
+		// Load Application properties file from classpath
+		final Properties prop = new Properties();		
+		try {
+			prop.load(this.getClass().getClassLoader().getResourceAsStream("application.properties"));
+		} catch (IOException e) {
+			log.warn("Failed to read application properties from file.");	
 		}
-		logger.setAdditivity(false);
 	
 		// TimeZone 
-		String timeZone = config.getInitParameter("timezone");								
+		String timeZone = prop.getProperty("timeZone","GMT+1");								
 		System.setProperty("user.timezone", timeZone);
 		TimeZone.setDefault(TimeZone.getTimeZone(timeZone));		
-		logger.info("Default timezone: " + TimeZone.getDefault().getID());
+		log.info("Default timezone: " + TimeZone.getDefault().getID());
 				
-		// Encoding 
-		logger.info("Encoding:" + System.getProperty("file.encoding"));
 		
+		version = prop.getProperty("version");
+		
+		// Encoding 
+		log.info("Encoding:" + System.getProperty("file.encoding"));
+		
+
 		// Version 
-		String version = config.getInitParameter("version");
+		String version = prop.getProperty("version","");
 		LookUpTableHandler.setVersion(version);
+		
+		
+		// Connection 
+		ConnectionPool.setConnection(prop.getProperty("url","jdbc:postgresql://localhost/bayeos"), 
+				prop.getProperty("username","bayeos"), prop.getProperty("password","4336bc9de7a6b11940e897ee22956d51"));
 
 		// xml-rpc
-		logger.debug("Initialize XmlRpcServer ...");
+		log.debug("Initialize XmlRpcServer ...");
 		xmlRpcServer = new XmlRpcServer();
 					
 		xmlRpcServer.addHandler("LoginHandler", new LoginHandler());
@@ -105,11 +113,11 @@ public class XMLServlet extends HttpServlet {
 		
 		
 		// OctetServer
-		logger.debug("Initialize OctetServer ...");
+		log.debug("Initialize OctetServer ...");
 		octetServer = new OctetServer();
 		octetServer.addHandler("OctetMatrixHandler", new OctetMatrixHandler());
 				
-		logger.info("Now accepting requests...");
+		log.info("Now accepting requests...");
 
 	}
 	
@@ -127,7 +135,14 @@ public class XMLServlet extends HttpServlet {
 		ServletOutputStream out = res.getOutputStream();
 						
 		
-		threadLocal.set(req.getRemoteAddr());				
+		String ip = req.getHeader("X-Forwarded-For");
+		
+		if (ip != null) {
+			threadLocal.set(ip);
+		} else {
+			threadLocal.set(req.getRemoteAddr());		
+		}
+						
 		
 		String auth = req.getHeader("Authentication");
 		if (auth != null)
@@ -160,7 +175,18 @@ public class XMLServlet extends HttpServlet {
 		}
 				
 	}
+	
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
+		PrintWriter w = resp.getWriter();
+		w.print("<h1>BayEOS Server ");
+		w.print(version);
+		w.print("</h1>");
+	
+	}
 
+	
 	private void setAuth(String auth) throws ServletException {
 		// decode string
 		String sesus = new String(Base64.decode(auth.getBytes())).trim();
@@ -179,7 +205,7 @@ public class XMLServlet extends HttpServlet {
 	 */
 	public void destroy() {
 		super.destroy();
-		logger.info("Destroying servlet XMLServlet ...");		
+		log.info("Destroying servlet XMLServlet ...");		
 		threadLocal.remove();
 		threadLocal = null;
 	}

@@ -1,39 +1,20 @@
 #!/bin/bash
 set -e
-
-cd /usr/share/bayeos-server
-chmod +x *.sh
 if ! id bayeos > /dev/null 2>&1 
 then	
 	useradd bayeos
 fi
-echo "Update database as postgres"
+
+service postgresql start 
+chmod +x /usr/share/bayeos-server/pg_postinst.sh
 su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
-echo "Update database as bayeos"
-java -jar liquibase.jar \
---driver=org.postgresql.Driver \
---classpath=postgresql-9.0-801.jdbc4.jar \
---changeLogFile=changelog.xml \
---url="jdbc:postgresql://localhost/bayeos" \
---username="bayeos" \
---password="4336bc9de7a6b11940e897ee22956d51" \
---defaultSchemaName="bayeos" \
-update 2>&1
+chmod +x /var/lib/bayeos-server/bayeos-server.sh
+chown bayeos:bayeos /var/lib/bayeos-server/bayeos-server.sh
+ln -fs /var/lib/bayeos-server/bayeos-server.sh /etc/init.d/bayeos-server
+update-rc.d bayeos-server defaults
+service bayeos-server start
 
-# Fix missing dirs which are referenced by catalina.properties
-echo "Create Tomcat related stuff"
-if [ ! -e /usr/share/tomcat6/shared/classes ] 
-then
-	mkdir -p /usr/share/tomcat6/shared/classes 
-fi
-if [ ! -e /usr/share/tomcat6/server/classes ] 
-then
-	mkdir -p /usr/share/tomcat6/server/classes 
-fi
-
-chown -R tomcat6 /usr/share/tomcat6
-# This modifies a file of package tomcat6
-cp /usr/share/bayeos-server/server-jk.xml /etc/tomcat6/server.xml
-a2enmod jk
-/etc/init.d/tomcat6 restart
-/etc/init.d/apache2 restart
+# Apache integration 
+a2enmod proxy proxy_http ssl remoteip
+a2enconf bayeos-server.conf
+service apache2 restart   

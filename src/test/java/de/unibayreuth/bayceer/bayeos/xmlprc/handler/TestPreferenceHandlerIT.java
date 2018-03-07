@@ -3,14 +3,15 @@ package de.unibayreuth.bayceer.bayeos.xmlprc.handler;
 import java.util.Hashtable;
 
 import org.apache.xmlrpc.XmlRpcException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.unibayreuth.bayceer.bayeos.client.AbstractClientTest;
 
-public class TestPreferenceHandler  extends AbstractClientTest{
+public class TestPreferenceHandlerIT  extends AbstractClientTest{
 
 	
-	@Test
+	@Ignore @Test	
 	public void test() throws XmlRpcException {
 		assertTrue((boolean) cli.execute("PreferenceHandler.setPreference","MyApplication","MyKey","MyValue" ));
 		Hashtable<String, String> map = (Hashtable<String, String>) cli.execute("PreferenceHandler.getPreferences", "MyApplication");
@@ -22,7 +23,7 @@ public class TestPreferenceHandler  extends AbstractClientTest{
 						
 	}
 	
-	@Test
+	@Ignore @Test
 	public void testTwoPrefs() throws XmlRpcException {
 		assertTrue((boolean) cli.execute("PreferenceHandler.setPreference","MyApplication","Key1","Value1" ));		
 		assertTrue((boolean) cli.execute("PreferenceHandler.setPreference","MyApplication","Key2","Value2" ));

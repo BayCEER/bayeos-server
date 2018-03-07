@@ -6,8 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import org.apache.xmlrpc.XmlRpcException;
@@ -19,8 +21,10 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IDataFrame;
 
 public class DataFrameHandler extends AccessHandler implements IDataFrame {
 
-	private static final int batchSize = 1000;	
+	private static final int batchSize = 1000;
 	
+	private static final String fmt = "yyyy-MM-dd HH:mm:ss";
+
 	@Override
 	public Vector getFrameRows(Integer frameId, Vector rowIndex) throws XmlRpcException {
 		logger.debug("Get frameRows of " + frameId);
@@ -64,7 +68,7 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 			DataType dataType = getDataType(colId);
 			con = getPooledConnection();
 			con.setAutoCommit(false);			
-			istmt = con.prepareStatement("insert into data_value(data_column_id, row_index, value) values (?,?,?::text)");			
+			istmt = con.prepareStatement("insert into data_value(data_column_id, row_index, value) values (?,?,?);");			
 			istmt.setInt(1, colId);
 			
 			
@@ -74,20 +78,16 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 					istmt.setInt(2,i+1);
 					switch (dataType) {
 					case STRING:
-						istmt.setString(3, (String) values.get(i));
-						break;
-					case BOOLEAN:
-						istmt.setBoolean(3, (Boolean) values.get(i));
+					case DOUBLE:
+					case INTEGER:
+					case BOOLEAN:						
+						istmt.setString(3, values.get(i).toString());
 						break;
 					case DATE:
-						istmt.setTimestamp(3, new java.sql.Timestamp(((Date) values.get(i)).getTime()));
-						break;
-					case DOUBLE:
-						istmt.setDouble(3, (Double) values.get(i));
-						break;
-					case INTEGER:
-						istmt.setDouble(3, (Integer) values.get(i));
-						break;
+						SimpleDateFormat df = new SimpleDateFormat(fmt);						
+						df.setTimeZone(TimeZone.getDefault());							
+						istmt.setString(3, df.format((Date) values.get(i)));
+						break;										
 					default:
 						con.rollback();
 						throw new XmlRpcException(0,"Data type not supported");
@@ -102,7 +102,8 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 			con.commit();
 			logger.debug("Finished insert of data frame column");												
 			return true;
-		} catch (SQLException e) {						
+		} catch (SQLException e) {
+			logger.error(e.getNextException().getMessage());
 			logger.error(e.getMessage());			
 			if (con != null){				
 				try {
@@ -222,27 +223,18 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 				if (values.get(i)!=null){
 					pIns.setInt(2, (int) rowIndexes.get(i));
 					DataType dataType = getDataType(colId);
-					switch (dataType) {
+					switch (dataType) {										
 					case STRING:
-						String v = (String) values.get(i);
-						pIns.setString(3, v);
-						break;
-					case BOOLEAN:
-						Boolean b = (Boolean) values.get(i);
-						pIns.setBoolean(3, b);
+					case DOUBLE:
+					case INTEGER:
+					case BOOLEAN:						
+						pIns.setString(3, values.get(i).toString());
 						break;
 					case DATE:
-						Timestamp t = new java.sql.Timestamp(((Date) values.get(i)).getTime());
-						pIns.setTimestamp(3, t);
-						break;
-					case DOUBLE:
-						Double d = (Double) values.get(i);
-						pIns.setDouble(3, d);
-						break;
-					case INTEGER:
-						Integer I = (Integer) values.get(i);
-						pIns.setDouble(3, I);
-						break;
+						SimpleDateFormat df = new SimpleDateFormat(fmt);						
+						df.setTimeZone(TimeZone.getDefault());							
+						pIns.setString(3, df.format((Date) values.get(i)));
+						break;		
 					default:
 						con.rollback();
 						throw new XmlRpcException(0, "Data type not supported");

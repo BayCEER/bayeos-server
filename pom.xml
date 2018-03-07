@@ -1,125 +1,64 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 	<artifactId>bayeos-server</artifactId>
-	<packaging>war</packaging>
-	<version>1.9.9</version>
-	
-	<parent>
-		<groupId>de.unibayreuth.bayceer.bayeos</groupId>
-		<artifactId>bayeos-parent</artifactId>
-		<version>1.0.0</version>
-		<relativePath>../bayeos-parent/pom.xml</relativePath>
-	</parent>
-	
+	<version>2.0.4</version>
+	<packaging>jar</packaging>
+
+	<licenses>
+		<license>
+			<name>GNU Public License v2.0</name>
+			<url> http://www.gnu.org/licenses/old-licenses/gpl-2.0.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<organization>
+		<name>University of Bayreuth - BayCEER</name>
+		<url>http://www.bayceer.uni-bayreuth.de</url>
+	</organization>
+
 	<name>bayeos-server</name>
-	<url>http://www.bayceer.uni-bayreuth.de/bayeos</url>
 	<description>bayeos-server</description>
-	
-	<profiles>
-	    
-	    
-	    
-	
-	<profile>
-    	<id>prod</id>
-    	<activation>
-      		<activeByDefault>true</activeByDefault>
-    	</activation>
-    	<properties>		    
-	    	<dbUrl>jdbc:postgresql://localhost/bayeos</dbUrl> 
-			<logPath>/var/log/tomcat6/XMLServlet.log</logPath>	
-			<logLevel>INFO</logLevel>												
-		</properties>
-    </profile>
-    
-	<profile>
-    	<id>dev</id>
-    	<properties>		    
-	    	<dbUrl>jdbc:postgresql://bayeos-dev/bayeos</dbUrl> 
-			<logPath>XMLServlet.log</logPath>	
-			<logLevel>DEBUG</logLevel>												
-		</properties>    	
-    </profile>
-	
-	</profiles>
-	
-	
-	<properties>		    	    
-		<dbUser>bayeos</dbUser>
-		<dbPassword>4336bc9de7a6b11940e897ee22956d51</dbPassword>
-		<timezone>GMT+1</timezone>						 	 		
-		<publish.path>${publish.debian.path}</publish.path>	
-		<release>wheezy</release>									
+
+	<properties>
+		<release>stretch</release>
+		<java.version>1.8</java.version>
+		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+		
+		<db.user>bayeos</db.user>
+		<db.password>4336bc9de7a6b11940e897ee22956d51</db.password>
+		
+		<server.timezone>GMT+1</server.timezone>
+		<server.port>5532</server.port>
+		<server.contextPath>/XMLServlet</server.contextPath>
+		
+		<log.level>INFO</log.level>
+		<log.path>/var/log/bayeos-server.log</log.path>
 	</properties>
-	
-	
-	<dependencies>		
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>provided</scope>
-		</dependency>				
-		<dependency>
-			<groupId>de.unibayreuth.bayceer.bayeos</groupId>
-			<artifactId>bayeos-xmlrpc</artifactId>
-			<version>1.9.9</version>
-		</dependency>
-		<dependency>
-			<groupId>com.novell.ldap</groupId>
-			<artifactId>jldap</artifactId>
-			<version>4.3</version>			
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-		<version>9.4-1201-jdbc41</version>
-</dependency>
 
-										
-	</dependencies>
-
-
-	<build>
-	  <testResources>
-          <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>true</filtering>              
-          </testResource>                    
-      </testResources>
-      	  
-      
-	<finalName>BayEOS-Server</finalName>
-		<plugins>			
+	<profiles>
+		<profile>
+			<id>prod</id>			
+			<properties>
+				<db.url>jdbc:postgresql://localhost/bayeos</db.url>				
+				<skipTests>true</skipTests>
+			</properties>
+			<build>
+			<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>2.3</version>
-				<configuration>					
-					<webResources>
-						<resource>
-							<!-- this is relative to the pom.xml directory -->
-							<directory>/src/main/webapp</directory>
-							<filtering>true</filtering>
-							<includes>
-								<include>**/*.properties</include>
-								<include>**/*.xml</include>
-								<include>**/*.jsp</include>
-							</includes>							
-						</resource>
-					</webResources>
-				</configuration>
-			</plugin>
-
-						
-
-			<plugin>
+				<!-- Creates the debian deb package -->
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
-				<version>1.1.1</version>
+				<version>1.5</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -127,37 +66,326 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
+							<controlDir>${project.build.directory}/deb/control</controlDir>
 							<deb>${project.build.directory}/${project.artifactId}-${project.version}+${release}.deb</deb>
 							<verbose>false</verbose>
 							<dataSet>
 								<data>
-									<src>${basedir}/src/deb/data</src>									
+									<src>${project.build.directory}/deb/data</src>
 									<type>directory</type>
-									<excludes>**/.svn/**</excludes>
 								</data>
-							
 								<data>
-									<src>${project.build.directory}/${project.build.finalName}.war</src>
-									<dst>BayEOS-Server.war</dst>
+									<src>${project.build.directory}/${project.build.finalName}.jar</src>
+									<dst>/var/lib/bayeos-server/bayeos-server.jar</dst>
 									<type>file</type>
-									<mapper>
-										<type>perm</type>										
-										<user>tomcat6</user>
-										<group>tomcat6</group>
-										<prefix>/var/lib/tomcat6/webapps</prefix>
-									</mapper>
-								</data>														
+								</data>
 							</dataSet>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-						
 			
-		</plugins>
+			</plugins>
+			</build>
+		</profile>
 
-	</build>
-	
-	
+		<profile>
+			<id>test</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<docker.hostname>docker</docker.hostname>
+				<docker.host>https://${docker.hostname}:2376</docker.host>
+				<db.url>jdbc:postgresql://db/bayeos</db.url>				
+			</properties>
+			<build>
+			<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.10</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.17</version>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>verify</id>
+						<goals>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<systemPropertyVariables>
+						<server.url>http://${docker.hostname}:${server.port}${server.contextPath}</server.url>
+						<server.user>root</server.user>
+						<server.password>bayeos</server.password>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- Runs the current version on docker -->
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>0.18.1</version>
+				<configuration>
+					<logDate>default</logDate>
+					<verbose>true</verbose>
+					<useColor>true</useColor>
+					<images>
+						<image>							
+							<alias>postgres-perl</alias>
+							<name>bayceer/postgres-perl:9.6</name>							
+							<build>								
+								<from>postgres:9.6</from>
+								<runCmds>
+									<runCmd>apt-get update &amp;&amp; apt-get install -y postgresql-plperl-9.6 libpq-dev libmath-spline-perl</runCmd>									
+								</runCmds>
+							 </build>													
+						</image>
+						<image>
+							<alias>db</alias>							
+							<name>bayceer/bayeos-server-db:${project.version}</name>
+							<build>								
+								<from>bayceer/postgres-perl:9.6</from>
+								<runCmds>	
+									<runCmd>localedef -i de_DE -c -f UTF-8 -A /usr/share/locale/locale.alias de_DE.UTF-8</runCmd>																	
+									<runCmd>echo "host  all  all  0.0.0.0/0  md5" >> /var/lib/postgresql/data/pg_hba.conf</runCmd>
+								</runCmds>								
+								<env>
+									<POSTGRES_USER>${db.user}</POSTGRES_USER>
+									<POSTGRES_PASSWORD>${db.password}</POSTGRES_PASSWORD>
+									<POSTGRES_INITDB_ARGS>--locale de_DE.UTF-8</POSTGRES_INITDB_ARGS>
+								</env>
+								<assembly>
+									<targetDir>/docker-entrypoint-initdb.d</targetDir>									
+									<inline>
+										<fileSets>
+											<fileSet>												
+												<directory>${project.basedir}/target/deb/data/usr/share/bayeos-server/sql</directory>
+												<outputDirectory>.</outputDirectory>
+											</fileSet>
+										</fileSets>
+									</inline>
+								</assembly>
+								 <tags>
+       						        <tag>latest</tag>
+                    				<tag>${project.version}</tag>                    				
+								</tags>
+							</build>
+							<run>
+							<labels>
+							
+							</labels>
+								<wait>
+									<log>PostgreSQL init process complete; ready for start up.</log>
+									<time>60000</time>									
+								</wait>								
+								
+								<log>
+									<prefix>DB:</prefix>
+									<color>blue</color>
+								</log>
+							</run>
+						</image>
+					
+						<image>
+							<alias>bayeos-server</alias>
+							
+							<name>bayceer/bayeos-server:${project.version}</name>
+							<build>								
+								<from>java:8</from>								
+								<assembly>
+									<descriptorRef>artifact</descriptorRef>
+								</assembly>
+								<cmd>
+									<shell>java -jar /maven/bayeos-server.jar ${server.port} ${server.contextPath}</shell>
+								</cmd>
+								<tags>
+       						        <tag>latest</tag>
+                    				<tag>${project.version}</tag>                    				
+								</tags>
+							</build>
+							<run>
+								
+								<labels>
+    								<environment>development</environment>
+    								<version>${project.version}</version>
+  								</labels>
+								<ports>
+									<port>${server.port}:${server.port}</port>
+								</ports>
+								<wait>
+									<http>
+										<url>http://${docker.hostname}:${server.port}${server.contextPath}</url>
+									</http>
+									<time>60000</time>
+								</wait>
+								<links>
+									<link>db:db</link>
+								</links>
+								<log>
+									<prefix>SERVER:</prefix>
+									<color>cyan</color>
+								</log>
+							</run>
+						</image>
+						
+					</images>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>build</goal>
+							<goal>start</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>stop</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			</plugins>
+			
+			
+			</build>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>bayeos-server</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/deb</directory>
+				<filtering>true</filtering>
+				<targetPath>${project.build.directory}/deb</targetPath>
+			</resource>
+		</resources>
+
+		<plugins>
+			
+			
+			<plugin>
+				<!-- Filtering of user defined variables in resources folders -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.1</version>
+				<configuration>
+					<nonFilteredFileExtensions>
+						<nonFilteredFileExtension>jar</nonFilteredFileExtension>
+						<nonFilteredFileExtension>sql</nonFilteredFileExtension>
+						<nonFilteredFileExtension>xml</nonFilteredFileExtension>
+					</nonFilteredFileExtensions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- Packages the application and all dependency in one jar -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4.3</version>
+				<configuration>
+					<createDependencyReducedPom>false</createDependencyReducedPom>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>de.unibayreuth.bayceer.bayeos.server.App</mainClass>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			
+			
+</plugins>
+</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.2.19.v20160908</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>9.2.19.v20160908</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.unibayreuth.bayceer.bayeos</groupId>
+			<artifactId>bayeos-xmlrpc</artifactId>
+			<version>1.9.9</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.novell.ldap</groupId>
+			<artifactId>jldap</artifactId>
+			<version>4.3</version>
+		</dependency>
+
+		<dependency>
+    		<groupId>org.postgresql</groupId>
+    		<artifactId>postgresql</artifactId>
+    		<version>42.1.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-dbcp2</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+
+
+
+		
 </project>

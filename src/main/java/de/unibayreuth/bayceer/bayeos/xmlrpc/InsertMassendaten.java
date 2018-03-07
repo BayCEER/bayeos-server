@@ -100,11 +100,10 @@ public class InsertMassendaten  {
 		dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC")); 	
 		
 		Statement st = con.createStatement();		
-		st.executeUpdate("create temp table tmp_massendaten (id int, von timestamp with time zone,wert real)");
+		st.executeUpdate("create temp table tmp_massendaten (n serial primary key, id int, von timestamp with time zone,wert real)");
 		
 		CopyManager cm = ((PGConnection)con.unwrap(PGConnection.class)).getCopyAPI();
 		CopyIn cin = cm.copyIn("COPY tmp_massendaten (id,von,wert) FROM STDIN WITH CSV");
-		
 		
 		
 		try (DataInputStream di = new DataInputStream(new ByteArrayInputStream(payload))){
@@ -113,7 +112,7 @@ public class InsertMassendaten  {
 				Timestamp von = new Timestamp(di.readLong());
 				Float wert = di.readFloat();								
 				if (!wert.isNaN()){
-					StringBuffer sb = new StringBuffer();
+					StringBuffer sb = new StringBuffer();					
 					sb.append(id).append(",").append(dateFormatter.format(von)).append(",").append(wert).append("\n");
 					byte[] b = sb.toString().getBytes("UTF-8");
 					cin.writeToCopy(b,0,b.length);
@@ -124,8 +123,6 @@ public class InsertMassendaten  {
 		long r = cin.endCopy();
 		logger.debug(r + " records received.");
 		
-		// printTable("tmp_massendaten");
-		
 		
 		// Check Rights		
 		for(Integer id:intervalIndex.keySet()){
@@ -134,24 +131,20 @@ public class InsertMassendaten  {
 				throw new InvalidRightException(1, "Missing rights to insert data");
 			};	
 		}
-		
-		if (overwrite){
-			st.executeUpdate("create temp table tmp_massendaten_up as select t.* from tmp_massendaten as t, massendaten as m where m.id=t.id and m.von=t.von");
-			// printTable("tmp_massendaten_up");
-			r = st.executeUpdate("update massendaten set wert=tmp_massendaten_up.wert from tmp_massendaten_up where tmp_massendaten_up.id = massendaten.id and tmp_massendaten_up.von = massendaten.von");
-			logger.info(r + " records updated.");			
-			r = st.executeUpdate("delete from tmp_massendaten using tmp_massendaten_up where tmp_massendaten.id = tmp_massendaten_up.id and tmp_massendaten.von = tmp_massendaten_up.von");
-			// printTable("tmp_massendaten");
-			st.executeUpdate("drop table tmp_massendaten_up");						
-		} else {
-			r = st.executeUpdate("delete from tmp_massendaten t using massendaten m where t.id=m.id and t.von=m.von");
-			// logger.debug(r + " existing records skipped.");
+				
+		// Uses on conflict clause ! Requires Postgresql >= 9.5.  
+		if (overwrite){			
+			 // on conflict do update
+			// All inserts are ordered desc by ingestion to keep the latest record 
+			r = st.executeUpdate("insert into massendaten (id,von,wert) select distinct on (id,von) id,von,wert from tmp_massendaten ORDER BY id,von,n desc ON CONFLICT (id,von) DO UPDATE SET id = EXCLUDED.ID, von = EXCLUDED.VON, wert = EXCLUDED.WERT");																					
+		} else {			
+			// on conflict do nothing
+			r = st.executeUpdate("insert into massendaten (id,von,wert) select id,von,wert from tmp_massendaten order by n asc ON CONFLICT (id,von) DO NOTHING");		
 		}
 				
-		r = st.executeUpdate("insert into massendaten (id,von,wert) select distinct id,von,wert from tmp_massendaten");
 		logger.info(r + " records imported.");
 												
-		st.executeUpdate("drop table if exists tmp_massendaten, tmp_massendaten_up");		
+		st.executeUpdate("drop table if exists tmp_massendaten");		
     	
     }
     

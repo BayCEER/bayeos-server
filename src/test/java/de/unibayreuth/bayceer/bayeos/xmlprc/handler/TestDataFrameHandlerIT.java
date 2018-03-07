@@ -7,6 +7,7 @@ import java.util.Vector;
 
 
 import org.apache.xmlrpc.XmlRpcException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.unibayreuth.bayceer.bayeos.client.AbstractClientTest;
@@ -15,10 +16,10 @@ import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektNode;
 
 
-public class TestDataFrameHandler extends AbstractClientTest{
+public class TestDataFrameHandlerIT extends AbstractClientTest{
 			
 	
-	@Test(timeout=5000)
+	@Ignore @Test(timeout=5000)
 	public void testWritePerfomance() {	
 		try {
 			ObjektNode rootNode = new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
@@ -74,7 +75,7 @@ public class TestDataFrameHandler extends AbstractClientTest{
 	
 		
 	
-	@Test
+	 @Ignore @Test
 	public void testWriteGetFrame()  {
 	
 		try {
@@ -247,7 +248,7 @@ public class TestDataFrameHandler extends AbstractClientTest{
 	}
 	
 	
-	@Test 
+	 @Ignore @Test 
 	public void testGetColumRows(){
 		try {
 		ObjektNode rootNode = new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
@@ -341,7 +342,7 @@ public class TestDataFrameHandler extends AbstractClientTest{
 	}
 	
 	
-	@Test
+	 @Ignore @Test
 	public void testGetMaxRowIndex(){
 		
 		try {
@@ -379,7 +380,7 @@ public class TestDataFrameHandler extends AbstractClientTest{
 		}
 	}
 	
-	@Test
+	 @Ignore @Test
 	public void testUpdateColValues() {
 		try{
 			ObjektNode rootNode = new ObjektNode((Vector) cli.execute(

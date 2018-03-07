@@ -313,7 +313,7 @@ public Vector getInheritedReferences(Integer obj_id) throws XmlRpcException {
           
     }
     
-    private void updateMessungen(Connection con, int id, Vector attrib) {
+    private void updateMessungen(Connection con, int id, Vector attrib) throws XmlRpcException{
         PreparedStatement st = null;
         try {
             con.setAutoCommit(false);
@@ -367,7 +367,9 @@ public Vector getInheritedReferences(Integer obj_id) throws XmlRpcException {
             con.commit();
             st.close();          
         } catch (SQLException e){
+        	logger.error(e.getMessage());        	
             try {con.rollback();st.close();con.close();} catch (SQLException z){;}
+            throw new XmlRpcException(0,e.getMessage());
         }
                             
     }
