@@ -2,7 +2,7 @@
 Server for environmental observation data
 
 Main characteristics 
-- Realization of an observation schema to store observations time series
+- Implementation of an observation schema to store observation time series
 - Batch aggregation of measurement values based on event times
 - Aggregation with delayed out of order handling
 - Web service interface 
@@ -38,3 +38,50 @@ Main characteristics
 ### API
 - XML-RPC
 - SQL
+
+## History
+### Version 2.0.4, March, 2018
+- Embedded Jetty web server 
+- Refined import handler interfaces 
+- JRE 8 headless 
+
+### Version 1.9, March, 2014
+- DataFrame modell 
+- Simplyfied installation
+- JNDI Tomcat connection pool
+- JRE 7 headless
+- User bayeos with MD5 authentification
+
+### Version 1.8, December, 2012
+- IP authentification filter
+- New API funcion to upsert or insert rows
+- Search path expressions on all object trees    
+
+### Version 1.7, January, 2011
+- LDAP authentification
+- UTF-8 encoding
+- Aggregation with time zone information
+- New function to import observations as binary data 
+
+### Version 1.6, Januar, 2008
+- Series state (active, inactive)
+- Automatic history archive
+
+### Version 1.5, Januar, 2004
+- Batch aggregation of measurement values based on event times for all series data
+- Aggregation with delayed out of order handling
+
+### Version 1.4, August, 2003
+- First PostgreSQL version
+- Crosstable function for matrix exports 
+- XML-RPC interface
+
+## License
+GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1, February 1999
+
+
+
+
+
+
+
