@@ -40,6 +40,9 @@ Main characteristics
 - SQL
 
 ## History
+### Version 2.0.5, July, 2018
+- [BayEOS-XMLRpc library updated to 2.0.0](https://github.com/BayCEER/bayeos-xmlrpc)
+
 ### Version 2.0.4, March, 2018
 - Embedded Jetty web server 
 - Refined import handler interfaces 
