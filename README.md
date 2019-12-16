@@ -1,4 +1,4 @@
-# ![BayEOS Server](docs/gateway_logo_medium.png)
+# ![BayEOS Server](docs/server_logo.png)
 Server for environmental observation data
 
 Main characteristics 
@@ -40,6 +40,10 @@ Main characteristics
 - SQL
 
 ## History
+### Version 2.0.6, Dec, 2019
+ - Jetty Update to 9.4.24
+ - Bind port to localhost  
+
 ### Version 2.0.5, July, 2018
 - [BayEOS-XMLRpc library updated to 2.0.0](https://github.com/BayCEER/bayeos-xmlrpc)
 

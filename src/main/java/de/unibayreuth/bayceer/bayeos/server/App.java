@@ -1,5 +1,7 @@
 package de.unibayreuth.bayceer.bayeos.server;
 
+import java.net.InetSocketAddress;
+
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -15,22 +17,23 @@ public class App {
 
 	public static void main(String[] args) throws Exception {
 		
-		
+		String address = "localhost";
 		Integer port = 5532;
 		String contextPath = "/XMLServlet";
-				
-		if (args.length == 2) {
-			port = Integer.parseInt(args[0]);
-			contextPath = args[1];				
+		
+		if (args.length == 3) {
+			address = args[0];			
+			port = Integer.parseInt(args[1]);
+			contextPath = args[2];			
+			
 		}
 		
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-                 
-        
+                         
         log.info("Running server on port:" + port);
                 
-        Server jettyServer = new Server(port);
+        Server jettyServer = new Server(new InetSocketAddress(address, port));
         jettyServer.setHandler(context);
         
         log.info("Adding servlet on path:" + contextPath);
