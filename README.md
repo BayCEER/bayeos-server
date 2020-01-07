@@ -36,13 +36,17 @@ Main characteristics
 - [BayEOS Viewer Package](https://github.com/BayCEER/bayeos-viewer-php)
 
 ### API
-- XML-RPC
+- [XML-RPC](http://bayceer.github.io/bayeos-xmlrpc/apidocs/)
 - SQL
 
 ## History
+
+### Version 2.0.7, 07 Jan, 2020
+- XML-RPC Version 2.0.1
+
 ### Version 2.0.6, Dec, 2019
- - Jetty Update to 9.4.24
- - Bind port to localhost  
+- Jetty Update to 9.4.24
+- Bind port to localhost  
 
 ### Version 2.0.5, July, 2018
 - [BayEOS-XMLRpc library updated to 2.0.0](https://github.com/BayCEER/bayeos-xmlrpc)
