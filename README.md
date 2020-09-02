@@ -8,21 +8,27 @@ Main characteristics
 - Web service interface 
 
 ## Getting Started
-
 ### Prerequisites
-- Debian/Ubuntu Linux Server with a minimum of 2GB RAM is recommended
-- Raspian on a Raspberry Pi (Model >=3) is working
+- Debian 9|10 Linux Server 
+- Root login
 
-### Installing
+### Installation
+1. Debian Repository
+- Login as root
+- Install basic tools for installation  
+`apt-get update`  
+`apt-get install wget gnupg`
 - Import the repository key  
-`wget -O - http://www.bayceer.uni-bayreuth.de/repos/apt/conf/bayceer_repo.gpg.key |apt-key add -`
-- Add the following repository to /etc/apt/sources.list  
-`deb http://www.bayceer.uni-bayreuth.de/repos/apt/debian stretch main`
+`wget -O - http://www.bayceer.uni-bayreuth.de/repos/apt/conf/bayceer_repo.gpg.key | apt-key add -`
+- Add this repository on Debian 9/Stretch  
+`echo "deb http://www.bayceer.uni-bayreuth.de/repos/apt/debian stretch main" | tee /etc/apt/sources.list.d/bayceer-stretch.list`  
+- Add this repository on Debian 10/Buster  
+`echo "deb http://www.bayceer.uni-bayreuth.de/repos/apt/debian buster main" | tee /etc/apt/sources.list.d/bayceer-buster.list`  
 - Update your repository cache  
 `apt-get update`
-- Install the core package   
-`apt-get install bayeos-gateway`
-- Install the [viewer package](https://github.com/BayCEER/bayeos-viewer-php)  
+2. Server   
+`apt-get install bayeos-server`
+3. Viewer 
 `apt-get install bayeos-viewer-php`
 
 ### Configuration
@@ -37,9 +43,14 @@ Main characteristics
 
 ### API
 - [XML-RPC](http://bayceer.github.io/bayeos-xmlrpc/apidocs/)
-- SQL
 
 ## History
+
+### Version 2.0.8, 31 Aug, 2020
+- XML-RPC Version 2.0.2
+- Jetty Update to 9.4.31
+- JRE 8|9|10|11 support
+- Postgresql 11 support  
 
 ### Version 2.0.7, 07 Jan, 2020
 - XML-RPC Version 2.0.1

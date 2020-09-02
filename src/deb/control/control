@@ -8,3 +8,5 @@ Depends: postgresql (>= 9.0),  postgresql-contrib, postgresql-plperl, apache2, l
 Recommends: ssl-cert
 Description: BayEOS XMLRPC Server a lightweight observation database interface
 Maintainer: oliver.archner@uni-bayreuth.de
+Homepage: https://github.com/BayCEER/bayeos-server
+  

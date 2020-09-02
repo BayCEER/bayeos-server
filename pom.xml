@@ -4,7 +4,7 @@
 
 	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 	<artifactId>bayeos-server</artifactId>
-	<version>2.0.7</version>
+	<version>2.0.8</version>
 	<packaging>jar</packaging>
 
 	<licenses>
@@ -24,10 +24,9 @@
 	<description>bayeos-server</description>
 
 	<properties>
-		<release>stretch</release>
 		<java.version>1.8</java.version>
-		<pg.version>9.6</pg.version>
-		<jetty.version>9.4.24.v20191120</jetty.version>
+		
+		<jetty.version>9.4.31.v20200723</jetty.version>
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -81,7 +80,7 @@
 						</goals>
 						<configuration>
 							<controlDir>${project.build.directory}/deb/control</controlDir>
-							<deb>${project.build.directory}/${project.artifactId}-${project.version}+${release}.deb</deb>
+							<deb>${project.build.directory}/${project.artifactId}-${project.version}.deb</deb>
 							<verbose>false</verbose>
 							<dataSet>
 								<data>
@@ -103,170 +102,7 @@
 			</build>
 		</profile>
 
-		<profile>
-			<id>test</id>
-			<properties>
-				<docker.hostname>localhost</docker.hostname>
-				<db.url>jdbc:postgresql://db/bayeos</db.url>				
-			</properties>
-			<build>
-			<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.10</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>2.17</version>
-				<executions>
-					<execution>
-						<id>integration-test</id>
-						<goals>
-							<goal>integration-test</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>verify</id>
-						<goals>
-							<goal>verify</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<systemPropertyVariables>
-						<server.url>http://${docker.hostname}:${server.port}${server.contextPath}</server.url>
-						<server.user>root</server.user>
-						<server.password>bayeos</server.password>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>io.fabric8</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<extensions>true</extensions>
-				<version>0.27.2</version>
-				<configuration>
-					<verbose>true</verbose>
-					<useColor>true</useColor>
-					<images>						
-						<image>
-							<name>bayeos-server-db:${project.version}</name>
-							<alias>db</alias>														
-							<build>								
-								<from>postgres:${pg.version}</from>
-								<runCmds>	
-									<runCmd>localedef -i de_DE -c -f UTF-8 -A /usr/share/locale/locale.alias de_DE.UTF-8</runCmd>																	
-									<runCmd>apt-get update &amp;&amp; apt-get install -y --no-install-recommends postgresql-plperl-${pg.version} libpq-dev libmath-spline-perl</runCmd>
-								</runCmds>								
-								<env>
-									<POSTGRES_INITDB_ARGS>--locale de_DE.UTF-8</POSTGRES_INITDB_ARGS>
-									<POSTGRES_USER>${db.user}</POSTGRES_USER>
-									<POSTGRES_PASSWORD>${db.password}</POSTGRES_PASSWORD>									
-								</env>
-								<assembly>
-									<targetDir>/docker-entrypoint-initdb.d</targetDir>									
-									<inline>
-										<fileSets>
-											<fileSet>												
-												<directory>${project.basedir}/target/deb/data/usr/share/bayeos-server/sql</directory>
-												<outputDirectory>.</outputDirectory>
-											</fileSet>
-										</fileSets>
-									</inline>
-								</assembly>
-								 <tags>
-								 	<tag>${project.version}</tag>                    				
-       						        <tag>latest</tag>                    				
-								</tags>
-							</build>
-							<run>
-							<labels>
-							
-							</labels>
-								<wait>
-									<log>Datenbanksystem ist bereit, um Verbindungen anzunehmen</log>
-									<time>60000</time>									
-								</wait>								
-								
-								<log>
-									<prefix>DB:</prefix>
-									<color>blue</color>
-								</log>
-							</run>
-						</image>
-					
-						<image>
-							<name>bayeos-server:${project.version}</name>
-							<alias>bayeos-server</alias>
-							<build>								
-								<from>java:8</from>								
-								<assembly>
-									<descriptorRef>artifact</descriptorRef>
-								</assembly>
-								<cmd>
-									<shell>java -jar /maven/bayeos-server.jar ${docker.hostname} ${server.port} ${server.contextPath}</shell>
-								</cmd>
-								<tags>
-									<tag>${project.version}</tag>                    				
-       						        <tag>latest</tag>                    				
-								</tags>
-							</build>
-							<run>
-								
-								<labels>
-    								<environment>development</environment>
-    								<version>${project.version}</version>
-  								</labels>
-								<ports>
-									<port>${server.port}:${server.port}</port>
-								</ports>
-								<wait>
-									<http>
-										<url>http://${docker.hostname}:${server.port}${server.contextPath}</url>
-									</http>
-									<time>60000</time>
-								</wait>
-								<links>
-									<link>db:db</link>
-								</links>
-								<log>
-									<prefix>SERVER:</prefix>
-									<color>cyan</color>
-								</log>
-							</run>
-						</image>
-						
-					</images>
-				</configuration>
-				<executions>
-					<execution>
-						<id>start</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>build</goal>
-							<goal>start</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>stop</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			
-			</plugins>
-			
-			
-			</build>
-		</profile>
+		
 	</profiles>
 
 	<build>
@@ -346,7 +182,7 @@
 		<dependency>
 			<groupId>de.unibayreuth.bayceer.bayeos</groupId>
 			<artifactId>bayeos-xmlrpc</artifactId>
-			<version>2.0.1</version>
+			<version>2.0.2</version>
 		</dependency>
 
 		<dependency>
@@ -358,7 +194,7 @@
 		<dependency>
     		<groupId>org.postgresql</groupId>
     		<artifactId>postgresql</artifactId>
-    		<version>42.1.4</version>
+    		<version>42.2.16</version>
 		</dependency>
 
 		<dependency>
@@ -370,7 +206,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-dbcp2</artifactId>
-			<version>2.1.1</version>
+			<version>2.7.0</version>
 		</dependency>
 
 		<dependency>

@@ -6,11 +6,13 @@ then
 fi
 
 service postgresql start 
-chmod +x /usr/share/bayeos-server/pg_postinst.sh
+chmod +x /usr/share/bayeos-server/*.sh
 su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
+
 chmod +x /var/lib/bayeos-server/bayeos-server.sh
 chown bayeos:bayeos /var/lib/bayeos-server/bayeos-server.sh
 ln -fs /var/lib/bayeos-server/bayeos-server.sh /etc/init.d/bayeos-server
+
 update-rc.d bayeos-server defaults
 service bayeos-server start
 

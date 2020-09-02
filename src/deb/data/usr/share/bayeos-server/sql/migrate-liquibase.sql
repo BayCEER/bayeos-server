@@ -4,9 +4,12 @@
 DO
 $do$
 BEGIN
-	BEGIN	
+	BEGIN
+	DROP TABLE databasechangelog;
+	DROP TABLE databasechangeloglock;
+		
 	CREATE TABLE schema_version (
-		installed_rank integer NOT NULL,
+		installed_rank integer NOT NULL PRIMARY KEY,
 		version character varying(50),
 		description character varying(200) NOT NULL,
 		type character varying(20) NOT NULL,
@@ -18,13 +21,10 @@ BEGIN
 		success boolean NOT NULL
 	);
 	ALTER TABLE schema_version OWNER TO bayeos;
-	ALTER TABLE ONLY schema_version ADD CONSTRAINT schema_version_pk PRIMARY KEY (installed_rank);
 	INSERT INTO schema_version VALUES (1, '1.99', 'bayeos', 'SQL', 'V1.99__bayeos.sql', -459484018, 'bayeos', now(), 1667, true);
 	CREATE INDEX schema_version_s_idx ON schema_version USING btree (success);
-	DROP TABLE IF EXISTS databasechangelog;
-	DROP TABLE IF EXISTS databasechangeloglock;
-	EXCEPTION
-		WHEN duplicate_table THEN RAISE NOTICE 'Table schema_version already exists';
+	EXCEPTION WHEN OTHERS THEN
+		RAISE NOTICE 'Liquibase migration canceled.';
 	END;
 END
 $do$;
