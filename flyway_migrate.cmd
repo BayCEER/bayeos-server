@@ -1,1 +1,0 @@
-flyway -configFiles=.\flyway.conf migrate
