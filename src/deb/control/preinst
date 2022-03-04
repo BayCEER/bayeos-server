@@ -1,8 +1,0 @@
-#!/bin/bash
-set -e
-
-if [ -e /etc/init.d/bayeos-server ]
-then
-	service bayeos-server stop
-	rm -f /etc/init.d/bayeos-server 
-fi 

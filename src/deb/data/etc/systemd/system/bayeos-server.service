@@ -1,0 +1,10 @@
+[Unit]
+Description=bayeos-server
+After=postgresql.service
+
+[Service]
+User=bayeos
+ExecStart=/usr/bin/java -Dlog4j.configuration=file:/etc/bayeos-server/log4j.properties -jar /var/lib/bayeos-server/bayeos-server.jar
+
+[Install]
+WantedBy=multi-user.target

@@ -9,14 +9,15 @@ service postgresql start
 chmod +x /usr/share/bayeos-server/*.sh
 su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
 
-chmod +x /var/lib/bayeos-server/bayeos-server.sh
-chown bayeos:bayeos /var/lib/bayeos-server/bayeos-server.sh
-ln -fs /var/lib/bayeos-server/bayeos-server.sh /etc/init.d/bayeos-server
+mkdir -p /var/log/bayeos
+chown -R bayeos:bayeos /var/lib/bayeos-server /var/log/bayeos
 
-update-rc.d bayeos-server defaults
-service bayeos-server start
+chmod 700 /var/lib/bayeos-server/bayeos-server.jar
+ln -sf /etc/bayeos-gateway/log4j.properties /var/lib/bayeos-server/log4j.properties
 
-# Apache integration 
+systemctl enable bayeos-server.service
+service bayeos-server start  
+
 a2enmod proxy proxy_http ssl remoteip
 a2enconf bayeos-server.conf
-service apache2 restart   
+service apache2 reload   

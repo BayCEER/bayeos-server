@@ -28,7 +28,7 @@ Main characteristics
 `apt-get update`
 2. Server   
 `apt-get install bayeos-server`
-3. Viewer 
+3. Viewer   
 `apt-get install bayeos-viewer-php`
 
 ### Configuration
@@ -45,6 +45,8 @@ Main characteristics
 - [XML-RPC](http://bayceer.github.io/bayeos-xmlrpc/apidocs/)
 
 ## History
+### Version 2.0.9, 03 Mar, 2021
+- Fixed: Replaced xml-rpc.jar in build for JRE8 compatibility 
 
 ### Version 2.0.8, 31 Aug, 2020
 - XML-RPC Version 2.0.2
