@@ -25,8 +25,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ByteUtils;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
@@ -42,7 +44,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IAggregationTableHandler
  */
 public class AggregationTableHandler extends AccessHandler implements  IAggregationTableHandler {
     
-    final static Logger logger = Logger.getLogger(AggregationTableHandler.class); 
+    final static Logger logger = LoggerFactory.getLogger(AggregationTableHandler.class); 
     
     
     

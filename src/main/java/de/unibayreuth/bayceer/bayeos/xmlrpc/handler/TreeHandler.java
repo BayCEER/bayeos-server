@@ -25,8 +25,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
@@ -44,7 +45,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ITreeHandler;
 
 public class TreeHandler extends AccessHandler implements ITreeHandler {
 
-	final static Logger logger = Logger.getLogger(TreeHandler.class);
+	final static Logger logger = LoggerFactory.getLogger(TreeHandler.class);
 
 	/**
 	 * Get Root Node
@@ -164,7 +165,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 			}
 
 			if (logger.isDebugEnabled()) {
-				logger.debug(sql);
+				logger.debug(sql.toString());
 			}
 			return XmlRpcUtils.getRows(getPooledConnection(), sql.toString());
 		} catch (SQLException e) {

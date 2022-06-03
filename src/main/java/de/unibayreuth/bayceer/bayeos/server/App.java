@@ -2,18 +2,19 @@ package de.unibayreuth.bayceer.bayeos.server;
 
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.XMLServlet;
+import jakarta.servlet.Servlet;
 
 public class App {
 	
-	private final static Logger log = Logger.getRootLogger();
-
-	// run with -Dlog4j.configuration=file:/etc/bayeos-server/log4j.properties
+	private final static Logger log = LoggerFactory.getLogger(App.class);
+	
 
 	public static void main(String[] args) throws Exception {
 		
@@ -38,7 +39,7 @@ public class App {
         
         log.info("Adding servlet on path:" + contextPath);
 
-        ServletHolder jerseyServlet = context.addServlet(XMLServlet.class, contextPath);
+        ServletHolder jerseyServlet = context.addServlet((Class<? extends Servlet>) XMLServlet.class, contextPath);
         jerseyServlet.setInitOrder(0);
         
                         

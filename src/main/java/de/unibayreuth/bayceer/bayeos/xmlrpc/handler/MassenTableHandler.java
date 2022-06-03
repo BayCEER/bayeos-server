@@ -21,8 +21,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ByteUtils;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InsertMassendaten;
@@ -36,7 +37,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IMassenTableHandler;
 
 public class MassenTableHandler extends AccessHandler implements IMassenTableHandler {
 
-	final static Logger logger = Logger.getLogger(MassenTableHandler.class);
+	final static Logger logger = LoggerFactory.getLogger(MassenTableHandler.class);
 
 	public Boolean addByteRows(byte[] b) throws XmlRpcException {
 		logger.debug("addByteRows");

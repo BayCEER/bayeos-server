@@ -21,8 +21,9 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.SelectUtils;
@@ -34,7 +35,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IMessungHandler;
  */
 public class MessungHandler extends AccessHandler implements IMessungHandler {
     
-    final static Logger logger = Logger.getLogger(MessungHandler.class.getName()); 
+    final static Logger logger = LoggerFactory.getLogger(MessungHandler.class); 
     
    
    public Integer getResolution(Integer Id) throws XmlRpcException {

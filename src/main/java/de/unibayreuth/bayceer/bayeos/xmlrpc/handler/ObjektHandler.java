@@ -23,8 +23,9 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InvalidRightException;
@@ -39,7 +40,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IObjektHandler;
  */
 public class ObjektHandler extends AccessHandler implements IObjektHandler  {
     
-    final static Logger logger = Logger.getLogger(ObjektHandler.class.getName()); 
+    final static Logger logger = LoggerFactory.getLogger(ObjektHandler.class); 
     
        
    
@@ -635,7 +636,7 @@ public Vector getInheritedReferences(Integer obj_id) throws XmlRpcException {
         con.commit();
         } catch (SQLException e){
         	con.rollback();
-        	logger.error(e);
+        	logger.error(e.getMessage());
         	throw new SQLException(e.getCause());       
         } finally {
            st.close();
@@ -687,7 +688,7 @@ public Vector getInheritedReferences(Integer obj_id) throws XmlRpcException {
         
         } catch (SQLException e){
         	con.rollback();
-        	logger.error(e);
+        	logger.error(e.getMessage());
         	throw new SQLException(e.getCause());       
         } finally {
            st.close();

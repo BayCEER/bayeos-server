@@ -22,7 +22,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.filter.AggregateFilter;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.filter.StatusFilter;
@@ -33,7 +34,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.AggregationTableHandler;
 public class MatrixUtils {
 	
 	private static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	private static final Logger logger = Logger.getLogger(MatrixUtils.class); 
+	private static final Logger logger = LoggerFactory.getLogger(MatrixUtils.class); 
 					
 	
 	/* Get a aggregated matrix query with value and status flag in on column seperated by semicolon

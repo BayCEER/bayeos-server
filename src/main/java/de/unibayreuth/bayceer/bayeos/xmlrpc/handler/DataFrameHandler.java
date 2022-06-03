@@ -117,7 +117,7 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 			try {
 				if (con != null) con.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}			
 		}
 	}
@@ -261,7 +261,7 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 			try {
 				if (con != null) con.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}		
 		}
 		return true;
@@ -280,7 +280,7 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 			if (logger.isDebugEnabled()) logger.debug(sql);
 			return SelectUtils.getInt(getPooledConnection(),sql);
 		} catch (SQLException e) {
-			logger.error(e);
+			logger.error(e.getMessage());
 			return null;
 		}
 	}
@@ -346,14 +346,14 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 				if (stmt != null)
 					stmt.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 			try {
 				if (con != null)
 					con.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 		}
@@ -412,14 +412,14 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 				if (stmt != null)
 					stmt.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 			try {
 				if (con != null)
 					con.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 		}
@@ -497,14 +497,14 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 				if (pstmt != null)
 					pstmt.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 			try {
 				if (con != null)
 					con.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 		}						
@@ -554,14 +554,14 @@ public class DataFrameHandler extends AccessHandler implements IDataFrame {
 				if (pstmt != null)
 					pstmt.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 			try {
 				if (con != null)
 					con.close();
 			} catch (SQLException e) {
-				logger.error(e);
+				logger.error(e.getMessage());
 			}
 			;
 		}						

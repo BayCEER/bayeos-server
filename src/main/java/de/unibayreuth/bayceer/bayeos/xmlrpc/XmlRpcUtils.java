@@ -18,7 +18,8 @@ import java.sql.Types;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.types.XmlRpcType;
 
@@ -36,7 +37,7 @@ public class XmlRpcUtils {
 	
 	
     
-    final static Logger logger = Logger.getLogger(XmlRpcUtils.class.getName()); 
+    final static Logger logger = LoggerFactory.getLogger(XmlRpcUtils.class); 
     
      public static Vector getRow(Connection con, String Sql)  throws SQLException{       
         Vector row = null;

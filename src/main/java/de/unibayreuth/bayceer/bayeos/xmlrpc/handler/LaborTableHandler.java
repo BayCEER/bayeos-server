@@ -26,8 +26,9 @@ import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InsertLabordaten;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InvalidRightException;
@@ -45,7 +46,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILaborTableHandler;
  */
 public class LaborTableHandler extends AccessHandler implements ILaborTableHandler {
     
-    final static Logger logger = Logger.getLogger(LaborTableHandler.class); 
+    final static Logger logger = LoggerFactory.getLogger(LaborTableHandler.class); 
     
        
     

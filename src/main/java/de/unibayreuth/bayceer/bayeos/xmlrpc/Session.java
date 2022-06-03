@@ -19,15 +19,16 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class Session  {
 	
   final static Double maxKey = Math.pow(2,31);
     
-  final static Logger logger = Logger.getLogger(Session.class.getName()); 
+  final static Logger logger = LoggerFactory.getLogger(Session.class); 
     
   public static Integer create(Integer benutzerId) throws XmlRpcException  {	  	  
 	  int key = ((Double)(Math.random() * maxKey)).intValue();	  

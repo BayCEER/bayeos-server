@@ -22,8 +22,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.objekt.Right;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InvalidRightException;
@@ -38,7 +39,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IRightHandler;
  */
 public class RightHandler extends AccessHandler implements IRightHandler {
 
-	final static Logger logger = Logger.getLogger(RightHandler.class.getName());
+	final static Logger logger = LoggerFactory.getLogger(RightHandler.class);
 
 	/**
 	 * Return the result, or throw an Exception if something went wrong.

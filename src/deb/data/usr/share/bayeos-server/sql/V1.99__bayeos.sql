@@ -3898,8 +3898,6 @@ CREATE TABLE aggr_avg_year (
 
 ALTER TABLE aggr_avg_year OWNER TO bayeos;
 
-SET default_with_oids = true;
-
 --
 -- Name: aggr_funktion; Type: TABLE; Schema: bayeos; Owner: bayeos; Tablespace: 
 --
@@ -3966,8 +3964,6 @@ ALTER TABLE aggr_intervall_id_seq OWNER TO bayeos;
 
 ALTER SEQUENCE aggr_intervall_id_seq OWNED BY aggr_intervall.id;
 
-
-SET default_with_oids = false;
 
 --
 -- Name: aggr_max_30min; Type: TABLE; Schema: bayeos; Owner: bayeos; Tablespace: 
@@ -4213,8 +4209,6 @@ ALTER TABLE alert_id_seq OWNER TO bayeos;
 
 ALTER SEQUENCE alert_id_seq OWNED BY alert.id;
 
-
-SET default_with_oids = true;
 
 --
 -- Name: arch_his_log; Type: TABLE; Schema: bayeos; Owner: bayeos; Tablespace: 
@@ -4760,7 +4754,7 @@ CREATE TABLE his_massendaten (
 
 ALTER TABLE his_massendaten OWNER TO bayeos;
 
-SET default_with_oids = true;
+
 
 --
 -- Name: intervaltyp; Type: TABLE; Schema: bayeos; Owner: bayeos; Tablespace: 
@@ -5037,7 +5031,7 @@ ALTER TABLE stati OWNER TO bayeos;
 COMMENT ON TABLE stati IS 'Referenztabelle Status';
 
 
-SET default_with_oids = true;
+
 
 --
 -- Name: sys_variablen; Type: TABLE; Schema: bayeos; Owner: bayeos; Tablespace: 
@@ -5748,7 +5742,7 @@ CREATE VIEW v_messungen_verweis AS
 
 ALTER TABLE v_messungen_verweis OWNER TO bayeos;
 
-SET default_with_oids = true;
+
 
 --
 -- Name: verweis_extern; Type: TABLE; Schema: bayeos; Owner: bayeos; Tablespace: 

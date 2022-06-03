@@ -16,13 +16,12 @@ package de.unibayreuth.bayceer.bayeos.xmlrpc.handler;
  */
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.XmlRpcUtils;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILookUpTableHandler;
@@ -32,7 +31,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILookUpTableHandler;
  */
 public class LookUpTableHandler extends AccessHandler implements ILookUpTableHandler {
     
-    final static Logger logger = Logger.getLogger(LookUpTableHandler.class.getName()); 
+    final static Logger logger = LoggerFactory.getLogger(LookUpTableHandler.class); 
     
     private static String version; 
     

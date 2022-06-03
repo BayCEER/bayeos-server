@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.unibayreuth.bayceer.bayeos</groupId>
@@ -24,85 +23,73 @@
 	<description>bayeos-server</description>
 
 	<properties>
-		<java.version>1.8</java.version>
-		
-		<jetty.version>9.4.31.v20200723</jetty.version>
-		
+		<java.version>11</java.version>
+		<release>bullseye</release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		
+		<build.year>${maven.build.timestamp}</build.year>
+		<maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
+		<maven.compiler.release>11</maven.compiler.release>
+
+		<jetty.version></jetty.version>
+
 		<db.user>bayeos</db.user>
 		<db.password>4336bc9de7a6b11940e897ee22956d51</db.password>
 		<db.url>jdbc:postgresql://localhost/bayeos</db.url>
-		
+
 		<server.port>5532</server.port>
-		<server.timezone>GMT+1</server.timezone>		
+		<server.timezone>GMT+1</server.timezone>
 		<server.contextPath>/XMLServlet</server.contextPath>
-		
-		<logging.level>INFO</logging.level>		
-		<logging.file>/var/log/bayeos/bayeos-server.log</logging.file>
+
 	</properties>
+
 
 	<profiles>
 		<profile>
-			<id>dev</id>
+			<id>prod</id>
+			<properties>
+				<skipTests>true</skipTests>
+			</properties>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
-			
-			<properties>
-				<logging.level>DEBUG</logging.level>
-				<logging.file>bayeos-gateway.log</logging.file>
-			</properties>
-		</profile>
-		
-		<profile>
-			<id>prod</id>			
-			<properties>
-				<skipTests>true</skipTests>				
-				<log.level>INFO</log.level>				
-			</properties>
 			<build>
-			<plugins>
-			<plugin>
-				<!-- Creates the debian deb package -->
-				<artifactId>jdeb</artifactId>
-				<groupId>org.vafer</groupId>
-				<version>1.5</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>jdeb</goal>
-						</goals>
-						<configuration>
-							<controlDir>${project.build.directory}/deb/control</controlDir>
-							<deb>${project.build.directory}/${project.artifactId}-${project.version}.deb</deb>
-							<verbose>false</verbose>
-							<dataSet>
-								<data>
-									<src>${project.build.directory}/deb/data</src>
-									<type>directory</type>
-								</data>
-								<data>
-									<src>${project.build.directory}/${project.build.finalName}.jar</src>
-									<dst>/var/lib/bayeos-server/bayeos-server.jar</dst>
-									<type>file</type>
-								</data>
-							</dataSet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			
-			</plugins>
+				<plugins>
+					<plugin>
+						<artifactId>jdeb</artifactId>
+						<groupId>org.vafer</groupId>
+						<version>1.5</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>jdeb</goal>
+								</goals>
+								<configuration>
+									<controlDir>${project.build.directory}/deb/control</controlDir>
+									<deb>${project.build.directory}/${project.artifactId}-${project.version}.deb</deb>
+									<verbose>false</verbose>
+									<dataSet>
+										<data>
+											<src>${project.build.directory}/deb/data</src>
+											<type>directory</type>
+										</data>
+										<data>
+											<src>${project.build.directory}/${project.build.finalName}.jar</src>
+											<dst>/var/lib/bayeos-server/bayeos-server.jar</dst>
+											<type>file</type>
+										</data>
+									</dataSet>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
 			</build>
 		</profile>
 
-		
+
 	</profiles>
 
 	<build>
@@ -120,8 +107,8 @@
 		</resources>
 
 		<plugins>
-			
-			
+
+
 			<plugin>
 				<!-- Filtering of user defined variables in resources folders -->
 				<groupId>org.apache.maven.plugins</groupId>
@@ -135,6 +122,14 @@
 					</nonFilteredFileExtensions>
 				</configuration>
 			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.1</version>
+			</plugin>
+
 			<plugin>
 				<!-- Packages the application and all dependency in one jar -->
 				<groupId>org.apache.maven.plugins</groupId>
@@ -161,22 +156,20 @@
 			</plugin>
 
 
-			
-			
-</plugins>
-</build>
+		</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>${jetty.version}</version>
+			<version>11.0.9</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>${jetty.version}</version>
+			<version>11.0.9</version>
 		</dependency>
 
 		<dependency>
@@ -192,15 +185,9 @@
 		</dependency>
 
 		<dependency>
-    		<groupId>org.postgresql</groupId>
-    		<artifactId>postgresql</artifactId>
-    		<version>42.2.16</version>
-		</dependency>
-
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.3.6</version>
 		</dependency>
 
 		<dependency>
@@ -215,10 +202,23 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.11</version>			
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>1.2.11</version>			
+		</dependency>
+
 	</dependencies>
 
 
-
-
-		
 </project>

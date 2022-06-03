@@ -19,11 +19,13 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class ByteUtils {
 			
-	private static final Logger logger = Logger.getLogger(ByteUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(ByteUtils.class);
     
     public static final int INTEGER = 0;
     public static final int FLOAT = 1;

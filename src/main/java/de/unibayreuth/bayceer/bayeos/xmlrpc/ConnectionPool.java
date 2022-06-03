@@ -20,7 +20,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -31,7 +32,7 @@ public class ConnectionPool {
     
    
     
-    private final static Logger logger = Logger.getLogger(ConnectionPool.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(ConnectionPool.class);
 	
     private static String url;
     private static String user;

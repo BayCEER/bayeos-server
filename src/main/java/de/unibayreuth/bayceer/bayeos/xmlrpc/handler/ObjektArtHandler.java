@@ -6,7 +6,6 @@ package de.unibayreuth.bayceer.bayeos.xmlrpc.handler;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
@@ -19,7 +18,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IObjektArtHandler;
  */
 public class ObjektArtHandler implements IObjektArtHandler {
 	
-	Logger logger = Logger.getLogger(ObjektArtHandler.class);
+	
 
 	/* 
 	 * 

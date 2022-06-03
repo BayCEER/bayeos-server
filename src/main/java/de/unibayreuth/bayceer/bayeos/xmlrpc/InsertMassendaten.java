@@ -24,10 +24,11 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.apache.log4j.Logger;
 import org.postgresql.PGConnection;
 import org.postgresql.copy.CopyIn;
 import org.postgresql.copy.CopyManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * InsertMassendaten.java
@@ -51,7 +52,7 @@ public class InsertMassendaten  {
 
 	private Integer userId;
     
-    private static final Logger logger = Logger.getLogger(InsertMassendaten.class);
+    private static final Logger logger = LoggerFactory.getLogger(InsertMassendaten.class);
     
     class Interval {
     	public java.sql.Timestamp min;

@@ -6,8 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Hashtable;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IPreferenceHandler;
@@ -15,7 +16,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IPreferenceHandler;
 public class PreferenceHandler extends AccessHandler implements
 		IPreferenceHandler {
 
-	final static Logger log = Logger.getLogger(PreferenceHandler.class);
+	final static Logger log = LoggerFactory.getLogger(PreferenceHandler.class);
 
 	@Override
 	public Hashtable<String, String> getPreferences(String application)	throws XmlRpcException {

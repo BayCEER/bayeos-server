@@ -14,5 +14,5 @@ then
 fi
 psql -c "ALTER ROLE bayeos SUPERUSER" 2>&1
 psql -d bayeos -c "ALTER TABLE if exists public.schema_version SET SCHEMA bayeos;" 2>&1
-$INSTALLDIR/flyway.sh -color=never migrate 
+java -Djava.security.egd=file:/dev/../dev/urandom -cp $INSTALLDIR/lib/*:$INSTALLDIR/drivers/* org.flywaydb.commandline.Main -url=${db.url} -driver=org.postgresql.Driver -user=${db.user} -password=${db.password} -validateOnMigrate=false -baselineOnMigrate=true -locations=filesystem:$INSTALLDIR/sql migrate
 psql -c "ALTER ROLE bayeos NOSUPERUSER" 2>&1

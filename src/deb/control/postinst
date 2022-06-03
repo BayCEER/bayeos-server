@@ -5,7 +5,8 @@ then
 	useradd bayeos
 fi
 
-service postgresql start 
+systemctl start postgresql.service 
+
 chmod +x /usr/share/bayeos-server/*.sh
 su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
 
@@ -13,11 +14,11 @@ mkdir -p /var/log/bayeos
 chown -R bayeos:bayeos /var/lib/bayeos-server /var/log/bayeos
 
 chmod 700 /var/lib/bayeos-server/bayeos-server.jar
-ln -sf /etc/bayeos-gateway/log4j.properties /var/lib/bayeos-server/log4j.properties
+ln -sf /etc/bayeos-gateway/logback.xml /var/lib/bayeos-server/logback.xml
 
 systemctl enable bayeos-server.service
-service bayeos-server start  
+systemctl start bayeos-server.service  
 
 a2enmod proxy proxy_http ssl remoteip
 a2enconf bayeos-server.conf
-service apache2 reload   
+systemctl try-reload-or-restart apache2.service    

@@ -15,19 +15,20 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.Base64;
 import org.apache.xmlrpc.OctetServer;
 import org.apache.xmlrpc.OctetServerException;
 import org.apache.xmlrpc.XmlRpcServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.AggregationTableHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.DataFrameHandler;
@@ -49,7 +50,7 @@ public class XMLServlet extends HttpServlet {
 
 	protected static XmlRpcServer xmlRpcServer;
 	protected static OctetServer octetServer;
-	protected final static Logger log = Logger.getRootLogger();
+	protected final static Logger log = LoggerFactory.getLogger(XMLServlet.class);
 	
 	private Integer sessionId, userId;
 	

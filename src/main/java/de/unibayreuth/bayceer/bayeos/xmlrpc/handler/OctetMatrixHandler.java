@@ -22,9 +22,10 @@ import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.OctetRpcHandler;
 import org.apache.xmlrpc.OctetServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InvalidRightException;
@@ -49,7 +50,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.formats.DateFormat;
  */
 public class OctetMatrixHandler extends AccessHandler implements OctetRpcHandler  {
     
-    private static final Logger logger = Logger.getLogger(OctetMatrixHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(OctetMatrixHandler.class);
     
     final static SimpleDateFormat df = new SimpleDateFormat();
     

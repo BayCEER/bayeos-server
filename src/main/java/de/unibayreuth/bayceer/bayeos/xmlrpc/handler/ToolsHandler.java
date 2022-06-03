@@ -20,8 +20,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
@@ -33,7 +34,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IToolsHandler;
  */
 public class ToolsHandler extends AccessHandler implements IToolsHandler {
     
-    final static Logger logger = Logger.getLogger(ToolsHandler.class.getName()); 
+    final static Logger logger = LoggerFactory.getLogger(ToolsHandler.class); 
     
     final static SimpleDateFormat df = new SimpleDateFormat();
         

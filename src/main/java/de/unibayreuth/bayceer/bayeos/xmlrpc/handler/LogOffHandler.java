@@ -15,8 +15,9 @@ package de.unibayreuth.bayceer.bayeos.xmlrpc.handler;
  * Created on 27. August 2002, 16:25
  */
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.Session;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILogOffHandler;
@@ -26,7 +27,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILogOffHandler;
  * @author  oliver
  */
 public class LogOffHandler extends AccessHandler implements ILogOffHandler {
-      final static Logger logger = Logger.getLogger(LogOffHandler.class.getName());
+      final static Logger logger = LoggerFactory.getLogger(LogOffHandler.class);
       
       
       public Boolean terminateSession() throws XmlRpcException{

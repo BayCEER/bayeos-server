@@ -19,9 +19,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.InvalidSessionException;
 import org.apache.xmlrpc.SessionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InvalidRightException;
@@ -40,7 +41,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.Session;
  */
 public abstract class AccessHandler implements SessionHandler {
     
-    final static Logger logger = Logger.getLogger(AccessHandler.class.getName()); 
+    final static Logger logger = LoggerFactory.getLogger(AccessHandler.class); 
     
      
     protected Integer sessionId;

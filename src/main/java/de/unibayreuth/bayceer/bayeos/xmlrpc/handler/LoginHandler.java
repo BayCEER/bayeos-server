@@ -17,8 +17,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
@@ -31,7 +32,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.XMLServlet;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILoginHandler;
 
 public class LoginHandler implements ILoginHandler {
-	final static Logger logger = Logger.getLogger(LoginHandler.class.getName());
+	final static Logger logger = LoggerFactory.getLogger(LoginHandler.class.getName());
 
 	public LoginHandler() {
 

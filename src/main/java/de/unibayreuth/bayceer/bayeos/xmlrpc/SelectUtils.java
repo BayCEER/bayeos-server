@@ -17,11 +17,12 @@ import java.sql.Statement;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class SelectUtils {
-    final static Logger logger = Logger.getLogger(SelectUtils.class.getName()); 
+    final static Logger logger = LoggerFactory.getLogger(SelectUtils.class); 
  
     public static String addSlashes(String s){
     	return s.replaceAll("\\\\","\\\\\\\\").replaceAll("'","\\\\'");
