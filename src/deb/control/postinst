@@ -10,8 +10,7 @@ systemctl start postgresql.service
 chmod +x /usr/share/bayeos-server/*.sh
 su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
 
-mkdir -p /var/log/bayeos
-chown -R bayeos:bayeos /var/lib/bayeos-server /var/log/bayeos
+chown -R bayeos:bayeos /var/lib/bayeos-server 
 
 chmod 700 /var/lib/bayeos-server/bayeos-server.jar
 ln -sf /etc/bayeos-gateway/logback.xml /var/lib/bayeos-server/logback.xml
