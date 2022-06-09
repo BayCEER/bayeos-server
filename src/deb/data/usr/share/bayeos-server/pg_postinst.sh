@@ -12,9 +12,12 @@ then
  createdb -O bayeos -E UTF-8 bayeos 2>&1
 fi
 
-echo "Try to upgrade flyway table name"
+echo "Try to upgrade the flyway table name"
 psql -d bayeos -c "alter table if exists schema_version rename TO flyway_schema_history;" 2>&1
 psql -d bayeos -c "alter table if exists flyway_schema_history set schema bayeos;" 2>&1
+
+echo "Try to fix a flyway checksum error"
+psql -d bayeos -c "update bayeos.flyway_schema_history set checksum = 1570904065 where version = '1.99'";
 
 psql -c "ALTER ROLE bayeos SUPERUSER" 2>&1
 java -Djava.security.egd=file:/dev/../dev/urandom -cp $INSTALLDIR/lib/*:$INSTALLDIR/drivers/* org.flywaydb.commandline.Main -url=${db.url} -driver=org.postgresql.Driver -user=${db.user} -password=${db.password} -locations=filesystem:$INSTALLDIR/sql migrate
