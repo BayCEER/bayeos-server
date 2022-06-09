@@ -13,7 +13,8 @@ then
 fi
 
 echo "Try to upgrade flyway table name"
-psql -d bayeos -c "alter table if exists public.schema_version rename TO public.flyway_schema_history;" 2>&1
+psql -d bayeos -c "alter table if exists schema_version rename TO flyway_schema_history;" 2>&1
+psql -d bayeos -c "alter table if exists flyway_schema_history set schema bayeos;" 2>&1
 
 psql -c "ALTER ROLE bayeos SUPERUSER" 2>&1
 java -Djava.security.egd=file:/dev/../dev/urandom -cp $INSTALLDIR/lib/*:$INSTALLDIR/drivers/* org.flywaydb.commandline.Main -url=${db.url} -driver=org.postgresql.Driver -user=${db.user} -password=${db.password} -locations=filesystem:$INSTALLDIR/sql migrate
