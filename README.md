@@ -21,7 +21,7 @@ Main characteristics
 - Update your repository cache  
 `apt-get update`
 - Install the core package   
-`apt-get install bayeos-gateway`
+`apt-get install bayeos-server`
 - Install the [viewer package](https://github.com/BayCEER/bayeos-viewer-php)  
 `apt-get install bayeos-viewer-php`
 
