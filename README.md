@@ -54,6 +54,9 @@ Main characteristics
 
 ## History
 
+### Version 2.0.11, 07 Feb, 2023
+- Removed obsolete flyway updates 
+
 ### Version 2.0.10, 06 Jun, 2022
 
 - Debian 11
