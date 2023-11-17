@@ -54,6 +54,9 @@ Main characteristics
 
 ## History
 
+### Version 2.0.12, 17 Nov, 2023
+- Register user login dates 
+
 ### Version 2.0.11, 07 Feb, 2023
 - Removed obsolete flyway updates 
 

@@ -42,12 +42,37 @@ public class LoginHandler implements ILoginHandler {
 
 		Vector result = new Vector();
 		Integer userId = authenticate(Login, PassWord);
+		setLastSeen(userId);
 		Integer sessionId = Session.create(userId);
 		result.add(sessionId);
 		result.add(userId);
 		return result;
 
 	}
+	
+	private void setLastSeen(Integer benutzerID) {
+		Connection con = null;
+		String sql = "UPDATE benutzer set last_seen = current_timestamp WHERE id = ?";
+		PreparedStatement st = null;
+		try {
+			con = ConnectionPool.getPooledConnection();
+			st = con.prepareStatement(sql);
+			st.setInt(1, benutzerID);
+			st.executeUpdate();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		} finally {
+			try {
+				st.close();
+				if (!con.isClosed())
+					con.close();
+			} catch (SQLException e) {
+				logger.error(e.getMessage());
+			}
+		}
+	}
+	
+	
 
 	private Integer authenticate(String login, String passWord) throws XmlRpcException {
 
