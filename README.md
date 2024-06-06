@@ -53,6 +53,8 @@ Main characteristics
 - [XML-RPC](http://bayceer.github.io/bayeos-xmlrpc/apidocs/)
 
 ## History
+### Version 2.0.13, 6 June, 2024
+- Not null constraint on messungen.id_intervaltyp
 
 ### Version 2.0.12, 17 Nov, 2023
 - Register user login dates 
