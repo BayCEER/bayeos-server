@@ -4,7 +4,7 @@ After=postgresql.service
 
 [Service]
 User=bayeos
-ExecStart=/usr/bin/java -Dlogback.configurationFile=file:/etc/bayeos-server/logback.xml -jar /var/lib/bayeos-server/bayeos-server.jar
+ExecStart=/usr/bin/java -Dlogback.configurationFile=file:/etc/bayeos-server/logback.xml -jar /var/lib/bayeos-server/bayeos-server.jar -s ${server.hostname} -p ${server.port} -c ${server.contextPath} -h ${db.hostname} -d ${db.name} -u ${db.username} -w ${db.password} -k ${api.key} -t ${api.timezone}
 
 [Install]
 WantedBy=multi-user.target

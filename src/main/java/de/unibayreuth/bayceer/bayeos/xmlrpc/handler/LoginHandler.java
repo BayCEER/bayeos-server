@@ -15,7 +15,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Vector;
+
+import javax.crypto.SecretKey;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
@@ -30,14 +33,24 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.SelectUtils;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.Session;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.XMLServlet;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILoginHandler;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 
 public class LoginHandler implements ILoginHandler {
 	final static Logger logger = LoggerFactory.getLogger(LoginHandler.class.getName());
 
-	public LoginHandler() {
+	private SecretKey apiKey;
 
+	public LoginHandler(SecretKey apiKey) {
+		this.apiKey = apiKey;
 	}
 
+	@Override
 	public Vector createSession(String Login, String PassWord) throws XmlRpcException {
 
 		Vector result = new Vector();
@@ -49,7 +62,7 @@ public class LoginHandler implements ILoginHandler {
 		return result;
 
 	}
-	
+
 	private void setLastSeen(Integer benutzerID) {
 		Connection con = null;
 		String sql = "UPDATE benutzer set last_seen = current_timestamp WHERE id = ?";
@@ -71,8 +84,47 @@ public class LoginHandler implements ILoginHandler {
 			}
 		}
 	}
-	
-	
+
+	private Integer authenticateToken(String token) throws XmlRpcException {
+		// Token is not expired
+		try {
+
+			Jws<Claims> jws = Jwts.parser().verifyWith(apiKey).build().parseSignedClaims(token);
+
+			String id = jws.getPayload().getSubject();
+			if (id == null) {
+				throw new XmlRpcException(401, "token subject is null");
+			}
+			Integer userId = 0;
+			try {
+				userId = Integer.valueOf(id);
+			} catch (NumberFormatException e) {
+				// Raise invalid subject format exception
+				throw new XmlRpcException(401, "invalid subject format");
+			}
+			// Verify that user exists and is not locked
+			try (Connection con = ConnectionPool.getPooledConnection();
+					PreparedStatement st = con.prepareStatement("select login from benutzer where id = ? and locked = false")) {
+				st.setInt(1, userId);
+				ResultSet rs = st.executeQuery();
+				if (!rs.next()) {
+					throw new XmlRpcException(401, String.format("user with id:%s not found",userId));
+				} 				
+				logger.info(String.format("User %s authenticated by token",rs.getString(1)));
+			} catch (SQLException e) {				
+				throw new XmlRpcException(0,e.getMessage());
+			}			
+			return userId;
+
+		} catch (ExpiredJwtException e) {
+			throw new XmlRpcException(401,"token expired");
+		} catch (SignatureException e) {
+			throw new XmlRpcException(401,"invalid signature");
+		} catch (JwtException e) {
+			throw new XmlRpcException(401, e.getMessage());
+		}
+
+	}
 
 	private Integer authenticate(String login, String passWord) throws XmlRpcException {
 
@@ -84,11 +136,11 @@ public class LoginHandler implements ILoginHandler {
 		if (authenticateIP(idBenutzer, login, XMLServlet.getClientIpAddress())) {
 			return idBenutzer;
 		}
-		
+
 		if (authenticateDB(idBenutzer, login, passWord)) {
 			return idBenutzer;
 		}
-		
+
 		if (authenticatLdap(idBenutzer, login, passWord)) {
 			return idBenutzer;
 		}
@@ -100,8 +152,7 @@ public class LoginHandler implements ILoginHandler {
 		// Authenticate by ip without password
 		logger.info("Trying to authenticate user:" + login + " by IP:" + ip);
 		String sql = "select access from auth_ip " + "where ?::inet<<=network and (login=? or login='*') "
-				+ "order by case when login='*' then 1 else 0 end, "
-				+ /* Direkte Nutzer kommen zuerst */
+				+ "order by case when login='*' then 1 else 0 end, " + /* Direkte Nutzer kommen zuerst */
 				"masklen(network) desc, " + /* Genauere Einträge zuerst */
 				"access"; /* TRUST vor DENY vor PASSWORD */
 		try (Connection con = ConnectionPool.getPooledConnection(); PreparedStatement pst = con.prepareStatement(sql)) {
@@ -157,7 +208,7 @@ public class LoginHandler implements ILoginHandler {
 			}
 
 			String name = rs1.getString("name");
-			logger.debug("Trying to authenticat user " + login + " by LDAP:" + name);
+			logger.debug("Trying to authenticate user " + login + " by LDAP:" + name);
 
 			if (rs1.getBoolean("ssl")) {
 				lc = new LDAPConnection(new LDAPJSSESecureSocketFactory());
@@ -181,7 +232,8 @@ public class LoginHandler implements ILoginHandler {
 
 	private Integer getBenutzerId(String login) {
 		try (Connection con = ConnectionPool.getPooledConnection();
-			 PreparedStatement st = con.prepareStatement("select id from benutzer where login like ? and locked = false")) {
+				PreparedStatement st = con
+						.prepareStatement("select id from benutzer where login like ? and locked = false")) {
 			st.setString(1, login);
 			ResultSet rs = st.executeQuery();
 			if (rs.next()) {
@@ -194,6 +246,17 @@ public class LoginHandler implements ILoginHandler {
 			return null;
 		}
 
+	}
+
+	@Override
+	public Vector createSessionByToken(String token) throws XmlRpcException {		
+		Vector result = new Vector();
+		Integer userId = authenticateToken(token);
+		setLastSeen(userId);
+		Integer sessionId = Session.create(userId);
+		result.add(sessionId);
+		result.add(userId);		
+		return result;
 	}
 
 }

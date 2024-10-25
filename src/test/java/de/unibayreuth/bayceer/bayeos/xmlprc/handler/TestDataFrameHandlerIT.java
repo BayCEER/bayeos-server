@@ -9,25 +9,29 @@ import java.util.Vector;
 import org.apache.xmlrpc.XmlRpcException;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.unibayreuth.bayceer.bayeos.client.AbstractClientTest;
 import de.unibayreuth.bayceer.bayeos.objekt.DataType;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
 import de.unibayreuth.bayceer.bayeos.objekt.ObjektNode;
+import de.unibayreuth.bayceer.bayeos.server.App;
 
 
 public class TestDataFrameHandlerIT extends AbstractClientTest{
-			
+	
+	private final static Logger log = LoggerFactory.getLogger(AbstractClientTest.class);
 	
 	@Ignore @Test(timeout=5000)
 	public void testWritePerfomance() {	
 		try {
-			ObjektNode rootNode = new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
+			ObjektNode rootNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
 			assertNotNull(rootNode);
 			
 			
 			// Create Frame 
-			ObjektNode frameNode = new ObjektNode((Vector) cli.execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Huge Frame", rootNode.getId()));
+			ObjektNode frameNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Huge Frame", rootNode.getId()));
 			assertNotNull(frameNode);						
 			
 		
@@ -64,7 +68,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 			
 			
 			
-			cli.execute("TreeHandler.deleteNode", frameNode.getId());
+			cli.getXmlRpcClient().execute("TreeHandler.deleteNode", frameNode.getId());
 			
 		} catch (XmlRpcException e) {
 			fail(e.getMessage());
@@ -81,11 +85,11 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		try {
 								
 			// Get Root
-			ObjektNode rootNode = new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));						
+			ObjektNode rootNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));						
 			assertNotNull(rootNode);
 			
 			// Create Frame 
-			ObjektNode frameNode = new ObjektNode((Vector) cli.execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Frame", rootNode.getId()));
+			ObjektNode frameNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Frame", rootNode.getId()));
 			assertNotNull(frameNode);						
 						
 			String[] stringValues = new String[]{"A","B","C","D"};			
@@ -116,7 +120,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 			addColumn(frameNode.getId(), 5, "COLUMN E", DataType.DATE,dateValues);
 						
 			// Get FrameRows 
-		 	Vector frameValues = (Vector) cli.execute("DataFrameHandler.getFrameRows",frameNode.getId(),null);		 			 	
+		 	Vector frameValues = (Vector) cli.getXmlRpcClient().execute("DataFrameHandler.getFrameRows",frameNode.getId(),null);		 			 	
 
 		 	// First Element Meta 		 	
 		 	assertEquals(2, frameValues.size());		 			 	
@@ -177,9 +181,9 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		 	Integer id = (Integer) ((Vector)cols.get(1)).get(0);
 		 	log.info("Delete column values for Id:" + id);
 		    
-		    assertTrue((Boolean)(cli.execute("DataFrameHandler.deleteColValues",id)));
+		    assertTrue((Boolean)(cli.getXmlRpcClient().execute("DataFrameHandler.deleteColValues",id)));
 		    
-		    frameValues = (Vector) cli.execute("DataFrameHandler.getFrameRows",frameNode.getId(),null);		 	
+		    frameValues = (Vector) cli.getXmlRpcClient().execute("DataFrameHandler.getFrameRows",frameNode.getId(),null);		 	
 
 		 	// First Element Meta 		 	
 		 	assertEquals(2, frameValues.size());		 			 	
@@ -207,7 +211,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		 	// Filter 
 		 	Vector rowIndexes = new Vector();
 		 	rowIndexes.add(2);		 	
-		 	frameValues = (Vector) cli.execute("DataFrameHandler.getFrameRows",frameNode.getId(), rowIndexes);
+		 	frameValues = (Vector) cli.getXmlRpcClient().execute("DataFrameHandler.getFrameRows",frameNode.getId(), rowIndexes);
 		 	rows = (Vector) frameValues.get(1);
 		 	assertEquals(1, rows.size());		 	
 		 	Vector row = (Vector) rows.get(0);
@@ -216,7 +220,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		 	
 		  
 			// Drop Frame including columns and references
-		 	cli.execute("TreeHandler.deleteNode", frameNode.getId());
+		 	cli.getXmlRpcClient().execute("TreeHandler.deleteNode", frameNode.getId());
 		 						
 												
 		} catch (XmlRpcException e) {
@@ -238,11 +242,11 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 	private ObjektNode addColumn(Integer frameId, Integer index, String name, DataType type, Object[] values) throws XmlRpcException {				
 			log.debug("Create " + type.name() + " Column");
 			// Create Column
-			ObjektNode colNode = new ObjektNode((Vector) cli.execute("TreeHandler.newNode", ObjektArt.DATA_COLUMN.toString(),name,frameId));
+			ObjektNode colNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.DATA_COLUMN.toString(),name,frameId));
 			// Update Column 
-			cli.execute("ObjektHandler.updateObjekt", colNode.getId(), ObjektArt.DATA_COLUMN.toString(), new Object[]{null,null,null,null,name,name,index,type.name()});						
+			cli.getXmlRpcClient().execute("ObjektHandler.updateObjekt", colNode.getId(), ObjektArt.DATA_COLUMN.toString(), new Object[]{null,null,null,null,name,name,index,type.name()});						
 			// Add Values to Column  
-			cli.execute("DataFrameHandler.writeColValues",colNode.getId(), values);
+			cli.getXmlRpcClient().execute("DataFrameHandler.writeColValues",colNode.getId(), values);
 			return colNode;
 		
 	}
@@ -251,17 +255,17 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 	 @Ignore @Test 
 	public void testGetColumRows(){
 		try {
-		ObjektNode rootNode = new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
+		ObjektNode rootNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
 		assertNotNull(rootNode);		
 		
 		// Create Frame A
-		ObjektNode frameNodeA = new ObjektNode((Vector) cli.execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Test Frame", rootNode.getId()));
+		ObjektNode frameNodeA = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Test Frame", rootNode.getId()));
 		assertNotNull(frameNodeA);			
 		String[] stringValues = new String[]{"A","B","C","D"};			
 		ObjektNode c1 = addColumn(frameNodeA.getId(), 1, "COLUMN A", DataType.STRING,stringValues);
 				
 		// Create Frame B
-		ObjektNode frameNodeB = new ObjektNode((Vector) cli.execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Test Frame", rootNode.getId()));
+		ObjektNode frameNodeB = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Test Frame", rootNode.getId()));
 		assertNotNull(frameNodeB);
 		Integer[] intValues = new Integer[]{1,2,3,4};			
 		ObjektNode c2 = addColumn(frameNodeB.getId(), 1, "COLUMN A", DataType.INTEGER,intValues);
@@ -274,7 +278,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		Vector parm = new Vector(2);
 		parm.add(colIds);
 		parm.add(null);		
-		Vector frameValues = (Vector) cli.execute("DataFrameHandler.getColumnRows",parm);
+		Vector frameValues = (Vector) cli.getXmlRpcClient().execute("DataFrameHandler.getColumnRows",parm);
 		
 		Vector meta = ((Vector)frameValues.get(0));
 		Vector cols = ((Vector)frameValues.get(1));		 
@@ -295,7 +299,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		parm.add(colIds);
 		parm.add(null);		
 		
-		frameValues = (Vector) cli.execute("DataFrameHandler.getColumnRows",parm);
+		frameValues = (Vector) cli.getXmlRpcClient().execute("DataFrameHandler.getColumnRows",parm);
 		meta = ((Vector)frameValues.get(0));
 		cols = ((Vector)frameValues.get(1));		
 		assertEquals(2, meta.size());
@@ -316,7 +320,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		rowIndexes.add(2);
 		rowIndexes.add(4);
 		parm.add(rowIndexes);		
-		frameValues = (Vector) cli.execute("DataFrameHandler.getColumnRows",parm);
+		frameValues = (Vector) cli.getXmlRpcClient().execute("DataFrameHandler.getColumnRows",parm);
 		
 		meta = ((Vector)frameValues.get(0));
 		cols = ((Vector)frameValues.get(1));		
@@ -331,8 +335,8 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 					
 		
 		// Drop Frames including columns and references
-	 	cli.execute("TreeHandler.deleteNode", frameNodeA.getId());
-	 	cli.execute("TreeHandler.deleteNode", frameNodeB.getId());
+	 	cli.getXmlRpcClient().execute("TreeHandler.deleteNode", frameNodeA.getId());
+	 	cli.getXmlRpcClient().execute("TreeHandler.deleteNode", frameNodeB.getId());
 		
 		
 		} catch (Exception e){
@@ -347,13 +351,13 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 		
 		try {
 		// Get Root
-			ObjektNode rootNode = new ObjektNode((Vector) cli.execute(
+			ObjektNode rootNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute(
 					"TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),
 					null, null, null));
 			assertNotNull(rootNode);
 
 			// Create Frame
-			ObjektNode frameNode = new ObjektNode((Vector) cli.execute(
+			ObjektNode frameNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute(
 					"TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(),
 					"Frame", rootNode.getId()));
 			assertNotNull(frameNode);
@@ -372,7 +376,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 			r.add(b.getId());
 			v.add(r);
 			
-			Integer va =  (Integer) cli.execute("DataFrameHandler.getMaxRowIndex", v);			
+			Integer va =  (Integer) cli.getXmlRpcClient().execute("DataFrameHandler.getMaxRowIndex", v);			
 			assertEquals(4, (int)va);
 					
 		} catch (Exception e){
@@ -383,13 +387,13 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 	 @Ignore @Test
 	public void testUpdateColValues() {
 		try{
-			ObjektNode rootNode = new ObjektNode((Vector) cli.execute(
+			ObjektNode rootNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute(
 					"TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),
 					null, null, null));
 			assertNotNull(rootNode);
 
 			// Create Frame
-			ObjektNode frameNode = new ObjektNode((Vector) cli.execute(
+			ObjektNode frameNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute(
 					"TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(),
 					"Frame", rootNode.getId()));
 			assertNotNull(frameNode);
@@ -403,13 +407,13 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 			Vector values = new Vector();
 			values.add("X");
 			values.add("Z");			
-			Boolean bol = (Boolean) cli.execute("DataFrameHandler.updateColValues", a.getId(),rowIndex,values);						
+			Boolean bol = (Boolean) cli.getXmlRpcClient().execute("DataFrameHandler.updateColValues", a.getId(),rowIndex,values);						
 			assertTrue(bol);
 			
 			Vector ids = new Vector();
 			ids.add(a.getId());
 				
-			Vector rec = (Vector) cli.execute("DataFrameHandler.getColumnRows",ids,rowIndex);
+			Vector rec = (Vector) cli.getXmlRpcClient().execute("DataFrameHandler.getColumnRows",ids,rowIndex);
 			Vector val = (Vector) rec.get(1);
 			Vector row = (Vector) val.get(0);
 			assertEquals("X", row.get(1));
@@ -422,7 +426,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 			rowIndex.add(5);
 			values = new Vector();
 			values.add(null);
-			assertTrue((Boolean) cli.execute("DataFrameHandler.updateColValues", a.getId(),rowIndex,values));
+			assertTrue((Boolean) cli.getXmlRpcClient().execute("DataFrameHandler.updateColValues", a.getId(),rowIndex,values));
 			
 			
 			Vector v = new Vector();
@@ -430,7 +434,7 @@ public class TestDataFrameHandlerIT extends AbstractClientTest{
 			r.add(a.getId());
 			v.add(r);
 			
-			Integer va =  (Integer) cli.execute("DataFrameHandler.getMaxRowIndex", v);				
+			Integer va =  (Integer) cli.getXmlRpcClient().execute("DataFrameHandler.getMaxRowIndex", v);				
 		    assertEquals(4, va.intValue());
 		     
 			

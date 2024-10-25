@@ -2,27 +2,35 @@ package de.unibayreuth.bayceer.bayeos.client;
 
 
 import java.io.IOException;
-
-import org.apache.xmlrpc.XmlRpcClient;
-import org.apache.xmlrpc.XmlRpcException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Properties;
 
 import junit.framework.TestCase;
 
 
+import org.apache.xmlrpc.XmlRpcException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public abstract class AbstractClientTest extends TestCase {
 
-	public XmlRpcClient cli;
-		
-	public Logger log = LoggerFactory.getLogger(AbstractClientTest.class);
+	public Client cli;
+
+	Properties p = new Properties();
+	
+	public String url;
+	public String user;
+	public String password;
+	
+	Logger logger = LoggerFactory.getLogger(AbstractClientTest.class);
 
 	public void setUp() throws XmlRpcException, IOException {
-			
-		String url = System.getProperty("server.url");
-		Client client = Client.getInstance();
-		client.connect(url, System.getProperty("server.user"), System.getProperty("server.password"));
-		cli = client.getXmlRpcClient();
+
+		p.load(getClass().getResourceAsStream("/test.properties"));
+		url = p.getProperty("url");
+		cli = Client.getInstance();
+		user = p.getProperty("user");
+		password  = p.getProperty("password");
+		cli.connect(url,user,password);
 	}
 
 	public void tearDown() throws XmlRpcException {

@@ -53,6 +53,9 @@ Main characteristics
 - [XML-RPC](http://bayceer.github.io/bayeos-xmlrpc/apidocs/)
 
 ## History
+### Version 2.1.0, Oct 22, 2024
+- Added JWT Token sign in 
+
 ### Version 2.0.13, 6 June, 2024
 - Not null constraint on messungen.id_intervaltyp
 

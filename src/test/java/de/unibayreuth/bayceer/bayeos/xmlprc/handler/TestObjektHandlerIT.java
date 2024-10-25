@@ -19,11 +19,11 @@ public class TestObjektHandlerIT extends AbstractClientTest{
 		// Get Root
 		
 		try {
-			ObjektNode rootNode =  new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
+			ObjektNode rootNode =  new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
 			assertNotNull(rootNode);
 			
 			// Create Frame 
-			ObjektNode frameNode = new ObjektNode((Vector) cli.execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Frame", rootNode.getId()));
+			ObjektNode frameNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.DATA_FRAME.toString(), "Frame", rootNode.getId()));
 			assertNotNull(frameNode);
 			
 			/*                     0:plan_start
@@ -39,8 +39,8 @@ public class TestObjektHandlerIT extends AbstractClientTest{
 			Date d = c.getTime();		    
 		    
 		
-			cli.execute("ObjektHandler.updateObjekt",frameNode.getId(),ObjektArt.DATA_FRAME.toString(),new Object[]{d,d,d,d,"Bez","Besch",1});			
-			Vector o = (Vector) cli.execute("ObjektHandler.getObjekt", frameNode.getId(), ObjektArt.DATA_FRAME.toString());
+			cli.getXmlRpcClient().execute("ObjektHandler.updateObjekt",frameNode.getId(),ObjektArt.DATA_FRAME.toString(),new Object[]{d,d,d,d,"Bez","Besch",1});			
+			Vector o = (Vector) cli.getXmlRpcClient().execute("ObjektHandler.getObjekt", frameNode.getId(), ObjektArt.DATA_FRAME.toString());
 			
 			assertEquals(d,o.get(15));
 			assertEquals(d,o.get(16));
@@ -50,7 +50,7 @@ public class TestObjektHandlerIT extends AbstractClientTest{
 			assertEquals("Besch",(String)o.get(21));
 			assertEquals((int)1,(int)o.get(22));
 			
-			cli.execute("TreeHandler.deleteNode", frameNode.getId());
+			cli.getXmlRpcClient().execute("TreeHandler.deleteNode", frameNode.getId());
 			
 		} catch (XmlRpcException e) {
 			fail(e.getMessage());
@@ -64,15 +64,15 @@ public class TestObjektHandlerIT extends AbstractClientTest{
 	@Test
 	public void testUpdateObjekt() {				
 		try {
-			Vector r = (Vector) cli.execute("TreeHandler.getRoot",ObjektArt.MESSUNG_ORDNER.toString(),false,null,null);			
+			Vector r = (Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot",ObjektArt.MESSUNG_ORDNER.toString(),false,null,null);			
 			Integer rId  = (Integer) r.get(2);
 			assertNotNull(rId);						
-			Vector res = (Vector) cli.execute("TreeHandler.newNode",ObjektArt.MESSUNG_MASSENDATEN.toString(),"Test Node",rId);									
+			Vector res = (Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode",ObjektArt.MESSUNG_MASSENDATEN.toString(),"Test Node",rId);									
 			Integer nId = (Integer) res.get(2);
 			assertNotNull(nId);						
-			cli.execute("ObjektHandler.updateObjekt",nId,ObjektArt.MESSUNG_MASSENDATEN.toString(),new Object[] {"Label","Description",120,null,null,1,2});			
-			Vector o = (Vector) cli.execute("ObjektHandler.getObjekt", nId, ObjektArt.MESSUNG_MASSENDATEN.toString());												
-			cli.execute("TreeHandler.deleteNode", nId);
+			cli.getXmlRpcClient().execute("ObjektHandler.updateObjekt",nId,ObjektArt.MESSUNG_MASSENDATEN.toString(),new Object[] {"Label","Description",120,null,null,1,2});			
+			Vector o = (Vector) cli.getXmlRpcClient().execute("ObjektHandler.getObjekt", nId, ObjektArt.MESSUNG_MASSENDATEN.toString());												
+			cli.getXmlRpcClient().execute("TreeHandler.deleteNode", nId);
 			
 		} catch (XmlRpcException e) {
 			fail(e.getMessage());

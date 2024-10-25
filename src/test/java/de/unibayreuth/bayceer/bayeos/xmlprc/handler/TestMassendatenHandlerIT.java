@@ -18,10 +18,10 @@ public class TestMassendatenHandlerIT extends NodeTest {
 		v.add(now);
 		v.add(new Double(14.2));
 		v.add(0);
-		Boolean res = (Boolean)cli.execute("MassenTableHandler.addRow",v);		
+		Boolean res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.addRow",v);		
 		assertTrue(res);
 		
-		Vector ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+		Vector ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 		assertNotNull(ret);
 		assertEquals(2, ret.size());				
 		byte[] ba = (byte[]) ret.get(1);		
@@ -33,10 +33,10 @@ public class TestMassendatenHandlerIT extends NodeTest {
 				
 		
 		v.set(2,new Double(14.2));
-		res = (Boolean)cli.execute("MassenTableHandler.upsertRow",v);
+		res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.upsertRow",v);
 		assertTrue(res);
 		
-		ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+		ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 		assertNotNull(ret);
 		assertEquals(2, ret.size());				
 		byte[] ba2 = (byte[]) ret.get(1);		
@@ -60,12 +60,12 @@ public class TestMassendatenHandlerIT extends NodeTest {
 		bb.putFloat(12.0F);		  // 4
 
 		// Call Method 
-		Boolean res = (Boolean)cli.execute("MassenTableHandler.upsertByteRows",bb.array());		
+		Boolean res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.upsertByteRows",bb.array());		
 		bb.clear();
 		assertTrue(res);
 
 		// Retrieve Value for t:now		
-		Vector ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+		Vector ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 		assertNotNull(ret);
 		assertEquals(2, ret.size());		
 		byte[] ba = (byte[]) ret.get(1);		
@@ -81,12 +81,12 @@ public class TestMassendatenHandlerIT extends NodeTest {
 		bb.putLong(now.getTime());   // 8
 		bb.putFloat(12.0F);		 // 4
 											
-		res = (Boolean)cli.execute("MassenTableHandler.upsertByteRows",bb.array());		
+		res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.upsertByteRows",bb.array());		
 		bb.clear();		
 		assertTrue(res);		
 
 		// Retrieve Value for t:now		
-		ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+		ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 		assertNotNull(ret);
 		assertEquals(2, ret.size());		
 		ba = (byte[]) ret.get(1);		
@@ -118,12 +118,12 @@ public class TestMassendatenHandlerIT extends NodeTest {
 
 
 				// Call Method 
-				Boolean res = (Boolean)cli.execute("MassenTableHandler.upsertByteRows",bb.array());		
+				Boolean res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.upsertByteRows",bb.array());		
 				bb.clear();
 				assertTrue(res);
 				
 				// Retrieve Value for t:now		
-				Vector ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+				Vector ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 				assertNotNull(ret);
 				assertEquals(2, ret.size());		
 				byte[] ba = (byte[]) ret.get(1);
@@ -154,12 +154,12 @@ public class TestMassendatenHandlerIT extends NodeTest {
 		
 		
 		// Call Method 
-		Boolean res = (Boolean)cli.execute("MassenTableHandler.addByteRows",bb.array());		
+		Boolean res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.addByteRows",bb.array());		
 		bb.clear();
 		assertTrue(res);
 		
 		// Retrieve Value for t:now		
-		Vector ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+		Vector ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 		assertNotNull(ret);
 		assertEquals(2, ret.size());		
 		byte[] ba = (byte[]) ret.get(1);
@@ -181,23 +181,23 @@ public class TestMassendatenHandlerIT extends NodeTest {
 		ByteBuffer bb = ByteBuffer.allocate(16).putInt(testNode.getId()).putLong(now.getTime()).putFloat(12.0F);			
 
 		// Call Method 
-		Boolean res = (Boolean)cli.execute("MassenTableHandler.addByteRows",bb.array());		
+		Boolean res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.addByteRows",bb.array());		
 		assertTrue(res);
 		
 		// Retrieve Value for t:now		
-		Vector ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+		Vector ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 		assertNotNull(ret);
 		assertEquals(9, ((byte[])ret.get(1)).length);
 
 		
 		// Call Method 
 		bb = ByteBuffer.allocate(16).putInt(testNode.getId()).putLong(now.getTime()).putFloat(16.0F);
-		res = (Boolean)cli.execute("MassenTableHandler.upsertByteRows",bb.array());		
+		res = (Boolean)cli.getXmlRpcClient().execute("MassenTableHandler.upsertByteRows",bb.array());		
 		assertTrue(res);
 		
 				
 		// Retrieve Value for t:now		
-		ret = (Vector) cli.execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
+		ret = (Vector) cli.getXmlRpcClient().execute("MassenTableHandler.getRows",testNode.getId(),timeFilter,statusFilter);		
 		assertNotNull(ret);
 		assertEquals(9, ((byte[])ret.get(1)).length);
 		

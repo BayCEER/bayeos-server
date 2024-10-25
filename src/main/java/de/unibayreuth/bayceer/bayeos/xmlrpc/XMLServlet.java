@@ -11,11 +11,15 @@
 package de.unibayreuth.bayceer.bayeos.xmlrpc;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import javax.crypto.SecretKey;
+
 import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
@@ -43,8 +47,10 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.ObjektHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.OctetMatrixHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.PreferenceHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.RightHandler;
+import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.TokenHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.ToolsHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.TreeHandler;
+import io.jsonwebtoken.security.Keys;
 
 public class XMLServlet extends HttpServlet {
 
@@ -57,7 +63,7 @@ public class XMLServlet extends HttpServlet {
 	private static ThreadLocal threadLocal = new ThreadLocal();
 	
 	private String version = "";
-
+	
 
 	/**
 	 * Initializes the servlet.
@@ -69,35 +75,37 @@ public class XMLServlet extends HttpServlet {
 			prop.load(this.getClass().getClassLoader().getResourceAsStream("application.properties"));
 		} catch (IOException e) {
 			log.warn("Failed to read application properties from file.");	
-		}
+		}		
+		
+		
+		
+			
+		version = prop.getProperty("version");
+		LookUpTableHandler.setVersion(version);
 	
-		// TimeZone 
-		String timeZone = prop.getProperty("timeZone","GMT+1");								
+		// TimeZone
+		ServletContext context = config.getServletContext();		
+		String timeZone = context.getInitParameter("api-tz");								
 		System.setProperty("user.timezone", timeZone);
 		TimeZone.setDefault(TimeZone.getTimeZone(timeZone));		
 		log.info("Default timezone: " + TimeZone.getDefault().getID());
-				
-		
-		version = prop.getProperty("version");
+						
 		
 		// Encoding 
 		log.info("Encoding:" + System.getProperty("file.encoding"));
-		
-
-		// Version 
-		String version = prop.getProperty("version","");
-		LookUpTableHandler.setVersion(version);
-		
-		
-		// Connection 
-		ConnectionPool.setConnection(prop.getProperty("url","jdbc:postgresql://localhost/bayeos"), 
-				prop.getProperty("username","bayeos"), prop.getProperty("password","4336bc9de7a6b11940e897ee22956d51"));
+	
+			
+		// Connection			
+		ConnectionPool.setConnection(String.format("jdbc:postgresql://%s/%s",context.getInitParameter("db_hostname"),context.getInitParameter("db_name")), 
+				context.getInitParameter("db_username"), context.getInitParameter("db_password"));
 
 		// xml-rpc
 		log.debug("Initialize XmlRpcServer ...");
 		xmlRpcServer = new XmlRpcServer();
+				
+		SecretKey apiKey = Keys.hmacShaKeyFor(context.getInitParameter("api-key").getBytes());	
 					
-		xmlRpcServer.addHandler("LoginHandler", new LoginHandler());
+		xmlRpcServer.addHandler("LoginHandler", new LoginHandler(apiKey));
 		xmlRpcServer.addHandler("LogOffHandler", new LogOffHandler());
 		xmlRpcServer.addHandler("ObjektArtHandler", new ObjektArtHandler());
 		xmlRpcServer.addHandler("ObjektHandler", new ObjektHandler());
@@ -111,6 +119,7 @@ public class XMLServlet extends HttpServlet {
 		xmlRpcServer.addHandler("MessungHandler", new MessungHandler());
 		xmlRpcServer.addHandler("DataFrameHandler", new DataFrameHandler());
 		xmlRpcServer.addHandler("PreferenceHandler", new PreferenceHandler());
+		xmlRpcServer.addHandler("TokenHandler", new TokenHandler(apiKey));
 		
 		
 		// OctetServer

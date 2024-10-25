@@ -37,10 +37,10 @@ public abstract class NodeTest extends AbstractClientTest {
 		
 		timeFilter = new TimeFilter(new Date(now.getTime() -1000),new Date(now.getTime() +1000)).getVector();
 				
-		rootNode = new ObjektNode((Vector) cli.execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
+		rootNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
 		assertNotNull(rootNode);
 		
-		testNode = new ObjektNode((Vector) cli.execute("TreeHandler.newNode", ObjektArt.MESSUNG_MASSENDATEN.toString(), "TestSeries", rootNode.getId()));
+		testNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.MESSUNG_MASSENDATEN.toString(), "TestSeries", rootNode.getId()));
 		assertNotNull(testNode);
 		
 	}
@@ -48,7 +48,7 @@ public abstract class NodeTest extends AbstractClientTest {
 	
 	@Override
 	public void tearDown() throws XmlRpcException {				
-		assertTrue((Boolean)cli.execute("TreeHandler.deleteNode", testNode.getId()));
+		assertTrue((Boolean)cli.getXmlRpcClient().execute("TreeHandler.deleteNode", testNode.getId()));
 		super.tearDown();
 	}
 
