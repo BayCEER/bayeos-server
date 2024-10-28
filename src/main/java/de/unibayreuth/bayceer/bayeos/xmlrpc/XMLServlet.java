@@ -50,6 +50,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.RightHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.TokenHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.ToolsHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.TreeHandler;
+import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILoginHandler;
 import io.jsonwebtoken.security.Keys;
 
 public class XMLServlet extends HttpServlet {
@@ -77,9 +78,7 @@ public class XMLServlet extends HttpServlet {
 			log.warn("Failed to read application properties from file.");	
 		}		
 		
-		
-		
-			
+					
 		version = prop.getProperty("version");
 		LookUpTableHandler.setVersion(version);
 	
@@ -104,8 +103,8 @@ public class XMLServlet extends HttpServlet {
 		xmlRpcServer = new XmlRpcServer();
 				
 		SecretKey apiKey = Keys.hmacShaKeyFor(context.getInitParameter("api-key").getBytes());	
-					
-		xmlRpcServer.addHandler("LoginHandler", new LoginHandler(apiKey));
+		ILoginHandler loginHandler = new LoginHandler(apiKey);
+		xmlRpcServer.addHandler("LoginHandler", loginHandler);
 		xmlRpcServer.addHandler("LogOffHandler", new LogOffHandler());
 		xmlRpcServer.addHandler("ObjektArtHandler", new ObjektArtHandler());
 		xmlRpcServer.addHandler("ObjektHandler", new ObjektHandler());
@@ -119,7 +118,7 @@ public class XMLServlet extends HttpServlet {
 		xmlRpcServer.addHandler("MessungHandler", new MessungHandler());
 		xmlRpcServer.addHandler("DataFrameHandler", new DataFrameHandler());
 		xmlRpcServer.addHandler("PreferenceHandler", new PreferenceHandler());
-		xmlRpcServer.addHandler("TokenHandler", new TokenHandler(apiKey));
+		xmlRpcServer.addHandler("TokenHandler", new TokenHandler(apiKey,loginHandler));
 		
 		
 		// OctetServer

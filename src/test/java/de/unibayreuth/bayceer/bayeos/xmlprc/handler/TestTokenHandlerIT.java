@@ -1,7 +1,6 @@
 package de.unibayreuth.bayceer.bayeos.xmlprc.handler;
 
 import java.net.MalformedURLException;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Calendar;
@@ -54,9 +53,28 @@ public class TestTokenHandlerIT extends AbstractClientTest {
 
 	
 	@Test
+	public void testCreateTokenWithInvalidCredentials()  {
+		Vector a = new Vector();
+		a.add("root");
+		a.add("adfsasf");		
+		try {
+			cli.getXmlRpcClient().execute("TokenHandler.createLoginToken", a);
+		fail();
+		} catch (XmlRpcException e) {			
+			System.out.println(e.getMessage());
+		}
+	}
+		
+	
+	@Test
 	public void testCreateAndUseToken() throws XmlRpcException, MalformedURLException {
-		String token = (String) cli.getXmlRpcClient().execute("TokenHandler.createLoginToken", new Vector());
-		assertNotNull(token);		
+		
+		Vector a = new Vector();
+		a.add(user);
+		a.add(password);				
+		String token = (String) cli.getXmlRpcClient().execute("TokenHandler.createLoginToken", a);		
+		assertNotNull(token);
+					
 		Vector r = (Vector)createSessionByToken(token);
 		assertNotNull(r);
 		Integer sessionID = (Integer) r.firstElement();
@@ -109,7 +127,7 @@ public class TestTokenHandlerIT extends AbstractClientTest {
 	}
 
 	@Test
-	public void testInvalidUserID() throws MalformedURLException {
+	public void testInvalidTokenUserID() throws MalformedURLException {
 		
 		Calendar c = GregorianCalendar.getInstance();
 		c.add(Calendar.DAY_OF_MONTH, -10);		

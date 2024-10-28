@@ -126,7 +126,8 @@ public class LoginHandler implements ILoginHandler {
 
 	}
 
-	private Integer authenticate(String login, String passWord) throws XmlRpcException {
+	@Override
+	public Integer authenticate(String login, String passWord) throws XmlRpcException {
 
 		Integer idBenutzer = getBenutzerId(login);
 		if (idBenutzer == null) {
