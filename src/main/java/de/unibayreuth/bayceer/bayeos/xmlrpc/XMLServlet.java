@@ -99,7 +99,7 @@ public class XMLServlet extends HttpServlet {
 	
 			
 		// Connection			
-		ConnectionPool.setConnection(String.format("jdbc:postgresql://%s/%s",context.getInitParameter("db_hostname"),context.getInitParameter("db.name")), 
+		ConnectionPool.setConnection(String.format("jdbc:postgresql://%s/%s",context.getInitParameter("db.hostname"),context.getInitParameter("db.name")), 
 				context.getInitParameter("db.username"), context.getInitParameter("db.password"));
 
 		// xml-rpc
