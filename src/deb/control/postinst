@@ -13,7 +13,15 @@ su - postgres -c /usr/share/bayeos-server/pg_postinst.sh
 chown -R bayeos:bayeos /var/lib/bayeos-server 
 
 chmod 700 /var/lib/bayeos-server/bayeos-server.jar
-ln -sf /etc/bayeos-gateway/logback.xml /var/lib/bayeos-server/logback.xml
+ln -sf /etc/bayeos-server/logback.xml /var/lib/bayeos-server/logback.xml
+
+kf=/etc/bayeos-server/api_key
+if [ ! -f $kf ]; then    
+	tr -dc A-Za-z0-9 </dev/urandom | head -c 32 > $kf
+	chown bayeos:bayeos $kf
+	chmod 600 $kf
+    echo "Generated new api key in $kf"
+fi
 
 systemctl enable bayeos-server.service
 systemctl start bayeos-server.service  

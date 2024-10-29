@@ -1,6 +1,10 @@
 package de.unibayreuth.bayceer.bayeos.server;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,42 +32,43 @@ public class App {
 		
 		Options options = new Options();
 				
-		options.addOption(Option.builder("s").longOpt("server_hostname").hasArg().argName("SRV_HOSTNAME").desc("server hostname").build());		
-		options.addOption(Option.builder("p").longOpt("server_port").hasArg().argName("SRV_PORT").desc("server port number").type(Integer.class).build());
-		options.addOption(Option.builder("c").longOpt("server_context_path").hasArg().argName("SRV_CONTEXT_PATH").desc("server context path").build());
+		options.addOption(Option.builder("c").longOpt("config_path").hasArg().argName("CONFIG_PATH").desc("server config path").build());
 	
-		options.addOption(Option.builder("h").longOpt("db_hostname").hasArg().argName("DB_HOSTNAME").desc("database hostname").build());
-		options.addOption(Option.builder("d").longOpt("db_name").hasArg().argName("DB_NAME").desc("database name").build());
-		options.addOption(Option.builder("u").longOpt("db_username").hasArg().argName("DB_USERNAME").desc("database user name").build());
-		options.addOption(Option.builder("w").longOpt("db_password").hasArg().argName("DB_PASSWORD").desc("database user password").build());
-						
-		options.addOption(Option.builder("k").longOpt("api-key").hasArg().argName("API-KEY").desc("api key to sign user token").build());
-		options.addOption(Option.builder("t").longOpt("api-tz").hasArg().argName("API-TZ").desc("api default time zone").build());		
-
 		// create the parser
 		CommandLineParser parser = new DefaultParser();
 		try {
 			// parse the command line arguments
 			CommandLine cmdLine = parser.parse(options, args);
+			
+			String confFile = cmdLine.getOptionValue("config_path", "/etc/bayeos-server") + File.separator + "application.properties";
+			
+			final Properties prop = new Properties();		
+			try {
+				prop.load(new FileInputStream(confFile));
+			} catch (IOException e) {
+				log.error(String.format("Failed to read application properties from file:%s",confFile));	
+				System.exit(-1);
+			}		
+									
 
 			ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 			context.setContextPath("/");
 			
-			context.setInitParameter("db_hostname", cmdLine.getOptionValue("db_hostname"));
-			context.setInitParameter("db_name", cmdLine.getOptionValue("db_name"));
-			context.setInitParameter("db_username", cmdLine.getOptionValue("db_username"));
-			context.setInitParameter("db_password", cmdLine.getOptionValue("db_password"));
-			context.setInitParameter("api-key", cmdLine.getOptionValue("api-key"));
-			context.setInitParameter("api-tz", cmdLine.getOptionValue("api-tz"));
-						
-			Integer port = cmdLine.getParsedOptionValue("server_port");
+			context.setInitParameter("db.hostname", prop.getProperty("db.hostname"));
+			context.setInitParameter("db.name", prop.getProperty("db.name"));
+			context.setInitParameter("db.username", prop.getProperty("db.username"));
+			context.setInitParameter("db.password", prop.getProperty("db.password"));			
+			context.setInitParameter("server.tz", prop.getProperty("server.tz"));			
+			context.setInitParameter("server.configPath", cmdLine.getOptionValue("config_path", "/etc/bayeos-server"));
+																		
+			Integer port = Integer.valueOf(prop.getProperty("server.port"));
 			log.info("Running server on port:" + port);
 
 			Server jettyServer = new Server(
-					new InetSocketAddress(cmdLine.getOptionValue("server_hostname"), port));
+					new InetSocketAddress(prop.getProperty("server.hostname"), port));
 			jettyServer.setHandler(context);
 
-			String contextPath = cmdLine.getOptionValue("server_context_path");
+			String contextPath = prop.getProperty("server.contextPath");
 			log.info("Adding servlet on path:" + contextPath);
 
 			ServletHolder jerseyServlet = context.addServlet((Class<? extends Servlet>) XMLServlet.class, contextPath);

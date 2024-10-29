@@ -9,8 +9,11 @@
  *     University of Bayreuth - BayCEER - initial API and implementation
  ******************************************************************************/
 package de.unibayreuth.bayceer.bayeos.xmlrpc;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -52,6 +55,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.ToolsHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.TreeHandler;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ILoginHandler;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.WeakKeyException;
 
 public class XMLServlet extends HttpServlet {
 
@@ -84,7 +88,7 @@ public class XMLServlet extends HttpServlet {
 	
 		// TimeZone
 		ServletContext context = config.getServletContext();		
-		String timeZone = context.getInitParameter("api-tz");								
+		String timeZone = context.getInitParameter("server.tz");								
 		System.setProperty("user.timezone", timeZone);
 		TimeZone.setDefault(TimeZone.getTimeZone(timeZone));		
 		log.info("Default timezone: " + TimeZone.getDefault().getID());
@@ -95,14 +99,21 @@ public class XMLServlet extends HttpServlet {
 	
 			
 		// Connection			
-		ConnectionPool.setConnection(String.format("jdbc:postgresql://%s/%s",context.getInitParameter("db_hostname"),context.getInitParameter("db_name")), 
-				context.getInitParameter("db_username"), context.getInitParameter("db_password"));
+		ConnectionPool.setConnection(String.format("jdbc:postgresql://%s/%s",context.getInitParameter("db_hostname"),context.getInitParameter("db.name")), 
+				context.getInitParameter("db.username"), context.getInitParameter("db.password"));
 
 		// xml-rpc
 		log.debug("Initialize XmlRpcServer ...");
 		xmlRpcServer = new XmlRpcServer();
 				
-		SecretKey apiKey = Keys.hmacShaKeyFor(context.getInitParameter("api-key").getBytes());	
+		String keyPath = context.getInitParameter("server.configPath") + File.separator + "api_key";		
+		SecretKey apiKey;
+		try {			
+			apiKey = Keys.hmacShaKeyFor(Files.readAllBytes(Paths.get(keyPath)));
+		} catch (WeakKeyException | IOException e) {
+			log.error(String.format("Failed to create key from file:%s",keyPath));
+			return;
+		}	
 		ILoginHandler loginHandler = new LoginHandler(apiKey);
 		xmlRpcServer.addHandler("LoginHandler", loginHandler);
 		xmlRpcServer.addHandler("LogOffHandler", new LogOffHandler());

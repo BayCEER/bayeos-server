@@ -30,16 +30,17 @@
 		<maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
 		<maven.compiler.release>11</maven.compiler.release>
 
+
 		<db.hostname>localhost</db.hostname>
 		<db.name>bayeos</db.name>
 		<db.username>bayeos</db.username>
 		<db.password>4336bc9de7a6b11940e897ee22956d51</db.password>
-
+		
+		<server.configPath>/etc/bayeos-server</server.configPath>
 		<server.hostname>localhost</server.hostname>
 		<server.port>5532</server.port>
 		<server.contextPath>/XMLServlet</server.contextPath>
-		<api.timezone>GMT+1</api.timezone>
-		<api.key>01234567012345670123456701234567</api.key>
+		<server.tz>GMT+1</server.tz>		
 
 	</properties>
 
