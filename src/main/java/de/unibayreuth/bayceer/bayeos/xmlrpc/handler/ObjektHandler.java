@@ -335,7 +335,11 @@ public Vector getInheritedReferences(Integer obj_id) throws XmlRpcException {
             }       
             
             // id_intervaltyp
-            st.setInt(4,((Integer)attrib.elementAt(5)).intValue());                
+            if (attrib.elementAt(5) == null) {
+                st.setInt(4,0); // undefined   
+            } else {
+                st.setInt(4,((Integer)attrib.elementAt(5)).intValue());    
+            }
             
             // fk_timezone_id
             if (attrib.elementAt(6) == null) {
