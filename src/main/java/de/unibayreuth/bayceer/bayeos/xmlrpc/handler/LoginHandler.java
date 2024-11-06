@@ -55,6 +55,7 @@ public class LoginHandler implements ILoginHandler {
 
 		Vector result = new Vector();
 		Integer userId = authenticate(Login, PassWord);
+		logger.debug(String.format("User %s logged in.", Login));
 		setLastSeen(userId);
 		Integer sessionId = Session.create(userId);
 		result.add(sessionId);
