@@ -467,7 +467,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 					+ "union select o.de ,o.id, o.id_super, uname, check_read(o.id," + getUserId()
 					+ ") as a  from objekt o, art_objekt where " + "o.id_art = art_objekt.id and lower(o.de) like '%"
 					+ SelectUtils.addSlashes(name.toLowerCase()) + "%' and uname in "
-					+ "('mess_einheit','mess_ziel','messung_ordner','messung_massendaten','messung_labordaten','mess_geraet','mess_kompartiment','mess_ort')) u ";
+					+ "('mess_einheit','mess_ziel','messung_ordner','messung_massendaten','messung_labordaten','mess_geraet','mess_kompartiment')) u ";
 			sql = sql + " where u.a = true";
 			return XmlRpcUtils.getRows(getPooledConnection(), sql);
 		} catch (SQLException e) {

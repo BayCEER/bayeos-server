@@ -70,13 +70,55 @@ public class TestObjektHandlerIT extends AbstractClientTest{
 			Vector res = (Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode",ObjektArt.MESSUNG_MASSENDATEN.toString(),"Test Node",rId);									
 			Integer nId = (Integer) res.get(2);
 			assertNotNull(nId);						
-			cli.getXmlRpcClient().execute("ObjektHandler.updateObjekt",nId,ObjektArt.MESSUNG_MASSENDATEN.toString(),new Object[] {"Label","Description",120,null,null,1,2});			
+			cli.getXmlRpcClient().execute("ObjektHandler.updateObjekt",nId,ObjektArt.MESSUNG_MASSENDATEN.toString(),
+					// 0: bezeichunng 
+					// 1: beschreibung 
+					// 2: auflösung 
+					// 3: plan_start 
+					// 4: plan_end 
+					// 5: id_intervaltyp 
+					// 6: fk_timezone_id 
+					// 7: lat 
+					// 8: lon 
+					// 9: alt
+					new Object[] {"Label","Description",120,null,null,1,2,45.0,11.5,300.0});			
 			Vector o = (Vector) cli.getXmlRpcClient().execute("ObjektHandler.getObjekt", nId, ObjektArt.MESSUNG_MASSENDATEN.toString());												
 			cli.getXmlRpcClient().execute("TreeHandler.deleteNode", nId);
 			
 		} catch (XmlRpcException e) {
 			fail(e.getMessage());
 		}
+	}
+	
+	@SuppressWarnings({ "rawtypes", "static-access" })
+	@Test
+	public void testGetObjekte() {
+		try {
+		Vector r = (Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot",ObjektArt.MESSUNG_ORDNER.toString(),false,null,null);			
+		Integer rId  = (Integer) r.get(2);
+		assertNotNull(rId);
+		
+		// Create two nodes 
+		Vector res = (Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode",ObjektArt.MESSUNG_ORDNER.toString(),"Test Node 1",rId);
+		Integer n1 = (Integer) res.get(2);
+		
+		res = (Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode",ObjektArt.MESSUNG_ORDNER.toString(),"Test Node 2",rId);
+		Integer n2 = (Integer) res.get(2);
+		Vector<Integer> s = new Vector<Integer>();
+		s.add(n1);
+		s.add(n2);
+		
+		Vector o = (Vector) cli.getXmlRpcClient().execute("ObjektHandler.getObjekte", s, ObjektArt.MESSUNG_ORDNER.toString());
+		assertEquals(o.size(), 2);
+		
+		
+		cli.getXmlRpcClient().execute("TreeHandler.deleteNode", n1);
+		cli.getXmlRpcClient().execute("TreeHandler.deleteNode", n2);
+		
+		} catch (XmlRpcException e) {
+			fail(e.getMessage());
+		}
+		
 	}
 
 }

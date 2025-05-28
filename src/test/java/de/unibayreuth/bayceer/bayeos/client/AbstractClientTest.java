@@ -25,11 +25,11 @@ public abstract class AbstractClientTest extends TestCase {
 
 	public void setUp() throws XmlRpcException, IOException {
 
-		p.load(getClass().getResourceAsStream("/test.properties"));
-		url = p.getProperty("url");
+		
+		url = "http://develop:5532/XMLServlet";
 		cli = Client.getInstance();
-		user = p.getProperty("user");
-		password  = p.getProperty("password");
+		user = "root";
+		password = "bayeos";
 		cli.connect(url,user,password);
 	}
 

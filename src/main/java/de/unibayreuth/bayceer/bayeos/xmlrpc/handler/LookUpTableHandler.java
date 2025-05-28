@@ -140,26 +140,6 @@ public class LookUpTableHandler extends AccessHandler implements ILookUpTableHan
 
 
 
-public Vector getCRS() throws XmlRpcException {
-	try {
-        logger.debug("getCRS()");
-        Connection con =  getPooledConnection();
-        String query = "select id, short_name, fk_srid_id from coordinate_ref_sys order by short_name";
-        if (logger.isDebugEnabled()) {  
-          logger.debug("Query:" + query);
-         }
-        return XmlRpcUtils.getRows(con, query);
-   } catch(SQLException e){
-		logger.error(e.getMessage());
-		throw new XmlRpcException(1, e.getMessage());
-	}
-}
-
-
-
-
-
-
 public Vector getTimeZones() throws XmlRpcException {
 	try {
         if (logger.isDebugEnabled()) {         

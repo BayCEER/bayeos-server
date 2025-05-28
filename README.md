@@ -53,6 +53,10 @@ Main characteristics
 - [XML-RPC](http://bayceer.github.io/bayeos-xmlrpc/apidocs/)
 
 ## History
+### Version 2.2.0, May 22, 2025
+- New properties messungen.{lat,lon,alt} 
+- Dropped ObjektArt 'mess_ort'
+
 ### Version 2.1.0, Oct 22, 2024
 - Added JWT Token sign in 
 
