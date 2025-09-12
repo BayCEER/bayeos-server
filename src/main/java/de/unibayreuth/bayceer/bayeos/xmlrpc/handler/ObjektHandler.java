@@ -27,7 +27,7 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
+import de.unibayreuth.bayceer.bayeos.objekt.Art;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InvalidRightException;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.SelectUtils;
@@ -42,15 +42,15 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 
 	final static Logger logger = LoggerFactory.getLogger(ObjektHandler.class);
 
-	public Vector getObjekt(Integer Id, String objektArt) throws XmlRpcException {
+	public Vector getObjekt(Integer Id, String art) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
-			logger.debug("getObjekt(" + Id + "," + objektArt + ")");
+			logger.debug("getObjekt(" + Id + "," + art + ")");
 		}
 
 		try {
-			ObjektArt art = ObjektArt.get(objektArt);
+			
 			String sql = "select check_write(id," + getUserId() + ") , check_exec(id," + getUserId() + "), * from v_"
-					+ art.toString() + " where id = " + Id + " and check_read(id," + getUserId() + ")";
+					+ art + " where id = " + Id + " and check_read(id," + getUserId() + ")";
 			return XmlRpcUtils.getRow(getPooledConnection(), sql);
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
@@ -72,7 +72,7 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 			throw new InvalidRightException(0, "Missing rights on " + aufObjId + ".");
 		try {
 
-			if (ObjektArt.get(aufArt).isExtern()) {
+			if (Art.isExtern(aufArt)) {
 				id_verweis = SelectUtils.getInt(getPooledConnection(),
 						"select create_web_verweis(" + vonObjId + "," + aufObjId + ")");
 				sql = " select case when o.uname like 'web_ls%' then 'Department'::text when o.uname like 'web_pro%' then 'Project'::text when o.uname like 'web_mit%' then 'Employee'::text end as type"
@@ -100,16 +100,16 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 
 	}
 
-	public Vector getLowestRefObjekt(Integer Id, String objektArt) throws XmlRpcException {
+	public Vector getLowestRefObjekt(Integer Id, String art) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
-			logger.debug("getLowestRefObjekt(" + Id + "," + objektArt + ")");
+			logger.debug("getLowestRefObjekt(" + Id + "," + art + ")");
 		}
 		// Direkte Referenz
-		ObjektArt art = ObjektArt.get(objektArt);
+		
 
-		String sql = "select get_lowest_ref(" + Id + "," + "'" + art.toString() + "')";
+		String sql = "select get_lowest_ref(" + Id + "," + "'" + art + "')";
 		try {
-			return getObjekt(SelectUtils.getInt(getPooledConnection(), sql), art.toString().toLowerCase());
+			return getObjekt(SelectUtils.getInt(getPooledConnection(), sql), art.toLowerCase());
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
 			throw new XmlRpcException(0, e.getMessage());
@@ -191,7 +191,7 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 		try {
 
 			con = getPooledConnection();
-			if (ObjektArt.get(art).isExtern()) {
+			if (Art.isExtern(art)) {
 				sql = "select id_auf from verweis_extern where id = ?";
 			} else {
 				sql = "select id_auf from verweis where id = ?";
@@ -240,7 +240,7 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 		try {
 
 			con = getPooledConnection();
-			if (ObjektArt.get(art).isExtern()) {
+			if (Art.isExtern(art)) {
 				sql = "delete from verweis_extern where id = ?";
 			} else {
 				sql = "delete from verweis where id = ?";
@@ -283,29 +283,28 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 			if (!checkWrite(id_obj)) {
 				throw new InvalidRightException(0, "Missing rights on " + id_obj + ".");
 			}
-			// UTime in Update wird übergeben falls Objekt in der Zwischenzeit verändert
-			// wurde
+			
 			con = getPooledConnection();
-			if (art.equals(ObjektArt.MESSUNG_LABORDATEN.toString())
-					|| art.equals(ObjektArt.MESSUNG_MASSENDATEN.toString())
-					|| art.equals(ObjektArt.MESSUNG_ORDNER.toString())) {
+			if (art.equals(Art.MESSUNG_LABORDATEN)
+					|| art.equals(Art.MESSUNG_MASSENDATEN)
+					|| art.equals(Art.MESSUNG_ORDNER)) {
 				updateMessungen(con, id_obj.intValue(), attrib);
-			} else if (art.equals(ObjektArt.MESS_EINBAU.toString())) {
+			} else if (art.equals(Art.MESS_EINBAU)) {
 				updateEinbau(con, id_obj.intValue(), attrib);
-			} else if (art.equals(ObjektArt.MESS_GERAET.toString())) {
+			} else if (art.equals(Art.MESS_GERAET)) {
 				updateGeraet(con, id_obj.intValue(), attrib);
-			} else if (art.equals(ObjektArt.MESS_KOMPARTIMENT.toString())) {
+			} else if (art.equals(Art.MESS_KOMPARTIMENT)) {
 				updateKompartiment(con, id_obj.intValue(), attrib);
-			} else if (art.equals(ObjektArt.MESS_ZIEL.toString())) {
+			} else if (art.equals(Art.MESS_ZIEL)) {
 				updateZiel(con, id_obj.intValue(), attrib);
-			} else if (art.equals(ObjektArt.MESS_EINHEIT.toString())) {
+			} else if (art.equals(Art.MESS_EINHEIT)) {
 				updateEinheit(con, id_obj.intValue(), attrib);
-			} else if (art.equals(ObjektArt.DATA_FRAME.toString())) {
+			} else if (art.equals(Art.DATA_FRAME)) {
 				updateDataFrame(con, id_obj.intValue(), attrib);
-			} else if (art.equals(ObjektArt.DATA_COLUMN.toString())) {
+			} else if (art.equals(Art.DATA_COLUMN)) {
 				updateDataColumn(con, id_obj.intValue(), attrib);
 			} else {
-				throw new IllegalArgumentException("Not a valid ObjektArt");
+				throw new IllegalArgumentException("Not a valid art");
 			}
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
@@ -328,8 +327,7 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 	 * @param con
 	 * @param id
 	 * @param attrib 0: bezeichunng 1: beschreibung 2: auflösung 3: plan_start 4:
-	 *               plan_end 5: id_intervaltyp 6: fk_timezone_id 7: lat 8: lon 9:
-	 *               alt
+	 *               plan_end 5: id_intervaltyp 6: fk_timezone_id 7: lat 8: lon 9: alt
 	 * @throws SQLException
 	 */
 	private void updateMessungen(Connection con, int id, Vector attrib) throws XmlRpcException {
@@ -458,7 +456,7 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 		if (!checkWrite(Id)) {
 			throw new InvalidRightException(0, "Missing rights on " + Id);
 		}
-		if (ObjektArt.get(art).isExtern()) {
+		if (Art.isExtern(art)) {
 			sql = "UPDATE verweis_extern set von = ? , bis = ? WHERE id = ?";
 		} else {
 			sql = "UPDATE verweis set von = ? , bis = ? WHERE id = ?";
@@ -777,8 +775,8 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 	 */
 	public String getExternUrl(Integer id, String art) throws XmlRpcException {
 		String sql;
-		ObjektArt o = ObjektArt.get(art);
-		if (o.isExtern()) {
+		
+		if (Art.isExtern(art)) {
 			sql = "select link from objekt_extern where id = " + id;
 		} else {
 			throw new XmlRpcException(0, "No urls available for ObjektArt:" + art);
@@ -793,17 +791,17 @@ public class ObjektHandler extends AccessHandler implements IObjektHandler {
 	}
 
 	@Override
-	public Vector getObjekte(Vector<Integer> ids, String objektArt) throws XmlRpcException {
+	public Vector getObjekte(Vector<Integer> ids, String art) throws XmlRpcException {
 		if (logger.isDebugEnabled()) {
-			logger.debug("getObjekte(" + ids + "," + objektArt + ")");
+			logger.debug("getObjekte(" + ids + "," + art + ")");
 		}
 		Connection con = null;
 		PreparedStatement pst = null;
 		try {
-			ObjektArt art = ObjektArt.get(objektArt);
+		
 			con = ConnectionPool.getPooledConnection();
-			String sql = "select check_write(id,?) , check_exec(id,?), * from v_" + art.toString() + " where id = ANY(?) and check_read(id,?)";
-			pst = con.prepareStatement(sql.toString());
+			String sql = "select check_write(id,?) , check_exec(id,?), * from v_" + art + " where id = ANY(?) and check_read(id,?)";
+			pst = con.prepareStatement(sql);
 			pst.setInt(1, getUserId());
 			pst.setInt(2, getUserId());
 			pst.setArray(3,con.createArrayOf("int",ids.toArray()));

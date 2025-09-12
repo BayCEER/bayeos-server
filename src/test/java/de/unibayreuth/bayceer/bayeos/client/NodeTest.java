@@ -9,8 +9,8 @@ import java.util.Vector;
 
 import org.apache.xmlrpc.XmlRpcException;
 
-import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
-import de.unibayreuth.bayceer.bayeos.objekt.ObjektNode;
+import de.unibayreuth.bayceer.bayeos.objekt.Art;
+import de.unibayreuth.bayceer.bayeos.objekt.Node;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.filter.StatusFilter;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.filter.TimeFilter;
 
@@ -23,8 +23,8 @@ public abstract class NodeTest extends AbstractClientTest {
 			
 	public Vector statusFilter;
 	public Vector timeFilter;
-	public ObjektNode rootNode;
-	public ObjektNode testNode;
+	public Node rootNode;
+	public Node testNode;
 	public Date now;
 
 
@@ -33,22 +33,21 @@ public abstract class NodeTest extends AbstractClientTest {
 		super.setUp();
 		
 		statusFilter = new StatusFilter(new int[] {0,1,2}).getVector();
-		now = new Date();
 		
+		now = new Date();		
 		timeFilter = new TimeFilter(new Date(now.getTime() -1000),new Date(now.getTime() +1000)).getVector();
-				
-		rootNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.getRoot", ObjektArt.MESSUNG_ORDNER.toString(),null,null,null));			
+		
+		rootNode = cli.getRoot(Art.MESSUNG_ORDNER);
 		assertNotNull(rootNode);
-		
-		testNode = new ObjektNode((Vector) cli.getXmlRpcClient().execute("TreeHandler.newNode", ObjektArt.MESSUNG_MASSENDATEN.toString(), "TestSeries", rootNode.getId()));
-		assertNotNull(testNode);
-		
+				
+		testNode = cli.newNode(rootNode.getId(),"Test Folder",Art.MESSUNG_ORDNER);
+		assertNotNull(testNode);		
 	}
 	
 	
 	@Override
-	public void tearDown() throws XmlRpcException {				
-		assertTrue((Boolean)cli.getXmlRpcClient().execute("TreeHandler.deleteNode", testNode.getId()));
+	public void tearDown() throws XmlRpcException {
+		cli.deleteNode(testNode);		
 		super.tearDown();
 	}
 

@@ -29,7 +29,7 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
+import de.unibayreuth.bayceer.bayeos.objekt.Art;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.InvalidRightException;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.SelectUtils;
@@ -44,6 +44,7 @@ import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.ITreeHandler;
  */
 
 public class TreeHandler extends AccessHandler implements ITreeHandler {
+
 
 	final static Logger logger = LoggerFactory.getLogger(TreeHandler.class);
 
@@ -432,7 +433,7 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		try {
 			// alle parent knoten bestimmen
 			con = getPooledConnection();
-			if (ObjektArt.get(art).isExtern()) {
+			if (Art.isExtern(art)) {
 				rs = SelectUtils.getResultSet(con, "select get_web_parent_ids(" + obj_id + ")");
 			} else {
 				rs = SelectUtils.getResultSet(con, "select get_inherited_parent_ids(" + obj_id + ")");
@@ -454,7 +455,12 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 			;
 		}
 	}
+	
+	
+	
+	
 
+	
 	public java.util.Vector findNode(java.lang.String name) throws XmlRpcException {
 		String sql;
 		try {
@@ -497,9 +503,8 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 				fbis = new java.sql.Timestamp(tFilter.getBis().getTime());
 			}
 
-			ObjektArt artObjekt = ObjektArt.get(art);
-
-			if (!artObjekt.isExtern()) {
+			
+			if (!Art.isExtern(art)) {
 				sql = new StringBuffer("select check_write(s.id,?), check_exec(s.id,?), s.* from ( "
 						+ "select o.id, o.id_super, a.uname as objektart, o.de, o.rec_start, o.rec_end, o.plan_start, o.plan_end, "
 						+ "isActive(o.plan_start,o.plan_end),isMissing(o.rec_end,?),has_child(o.id) "
@@ -677,5 +682,65 @@ public class TreeHandler extends AccessHandler implements ITreeHandler {
 		}
 		return ret;
 	}
+
+	@Override
+	public Vector getObjektTreeWithLocation(Integer id, String antFilter, String artFilter, Integer maxDepth,
+			Boolean activeFilter, String missingInterval, Vector timeFilter) throws XmlRpcException {
+	
+		if (logger.isDebugEnabled()) {
+			logger.debug("getObjektTreeWithLocation(" + id + ",...");
+		}
+		
+		TimeFilter tFilter;
+		if (timeFilter == null) {
+			tFilter = null;
+		} else {
+			tFilter = new TimeFilter(timeFilter);
+		}
+				
+		try {																				 					
+			StringBuffer sql = new StringBuffer("select *,");
+			sql.append("isActive(plan_start,plan_end)");
+			sql.append(",");
+			sql.append((missingInterval != null) ? "isMissing(rec_end,'" + missingInterval + "')" : "false");
+			sql.append(" from get_objekt_tree_with_location(");
+			sql.append(id);
+			sql.append(",");
+			sql.append(getUserId().toString());
+			sql.append(",'./',null,null,null,"); // path,lon,lat,alt
+			sql.append((maxDepth == null)?-1:maxDepth);
+			sql.append(",");
+			sql.append((activeFilter != null && activeFilter.booleanValue()) ? "true" : "false");
+			sql.append(",");
+			sql.append((tFilter != null ? DateFormat.databaseDateFormat.format(tFilter.getVon()) : "null"));
+			sql.append(",");
+			sql.append((tFilter != null ? DateFormat.databaseDateFormat.format(tFilter.getBis()) : "null"));
+			sql.append(") where true");
+			
+			if (artFilter != null && artFilter.length() > 0) {
+				sql.append(" and art ilike E'");
+				sql.append(SelectUtils.addSlashes(artFilter));
+				sql.append("%'");
+			}
+			if (antFilter != null && antFilter.length() > 0) {
+				sql.append(" and escape_path_separator(path||replace(name,'/',E'\\\\/')) ~* ant_to_regexp(E'");
+				sql.append(SelectUtils.addSlashes(antFilter));
+				sql.append("')");
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug(sql.toString());
+			}
+			return XmlRpcUtils.getRows(getPooledConnection(), sql.toString());
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+			throw new XmlRpcException(0, e.getMessage());
+		}
+		
+		
+		
+		
+	}
+
+	
 
 }

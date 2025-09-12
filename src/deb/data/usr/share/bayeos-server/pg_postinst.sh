@@ -13,5 +13,13 @@ then
 fi
 
 psql -c "ALTER ROLE ${db.username} SUPERUSER" 2>&1
-java -Djava.security.egd=file:/dev/../dev/urandom -cp $INSTALLDIR/lib/*:$INSTALLDIR/drivers/* org.flywaydb.commandline.Main -url=jdbc:postgresql://${db.hostname}/${db.name} -driver=org.postgresql.Driver -user=${db.username} -password=${db.password} -locations=filesystem:$INSTALLDIR/sql migrate
+psql -d ${db.username} -c "ALTER TABLE IF EXISTS flyway_schema_history SET SCHEMA ${db.username};"
+
+flyway(){
+	java -Djava.security.egd=file:/dev/../dev/urandom -cp $INSTALLDIR/lib/*:$INSTALLDIR/drivers/* org.flywaydb.commandline.Main -url=jdbc:postgresql://${db.hostname}/${db.name} -driver=org.postgresql.Driver -user=${db.username} -defaultSchema=${db.username} -password=${db.password} -locations=filesystem:$INSTALLDIR/sql $1
+}
+# fix backports 
+flyway repair
+flyway migrate
+
 psql -c "ALTER ROLE ${db.username} NOSUPERUSER" 2>&1

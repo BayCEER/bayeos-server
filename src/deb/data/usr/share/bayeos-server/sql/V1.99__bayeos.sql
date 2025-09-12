@@ -15,7 +15,7 @@ SET client_min_messages = warning;
 -- Name: bayeos; Type: SCHEMA; Schema: -; Owner: bayeos
 --
 
-CREATE SCHEMA bayeos AUTHORIZATION bayeos;
+CREATE SCHEMA IF NOT EXISTS bayeos AUTHORIZATION bayeos;
 
 --
 -- Name: plperl; Type: EXTENSION; Schema: -; Owner: 

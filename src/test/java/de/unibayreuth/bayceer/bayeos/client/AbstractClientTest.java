@@ -17,20 +17,20 @@ public abstract class AbstractClientTest extends TestCase {
 
 	Properties p = new Properties();
 	
+	Logger logger = LoggerFactory.getLogger(AbstractClientTest.class);
+	
 	public String url;
 	public String user;
 	public String password;
-	
-	Logger logger = LoggerFactory.getLogger(AbstractClientTest.class);
 
 	public void setUp() throws XmlRpcException, IOException {
 
-		
-		url = "http://develop:5532/XMLServlet";
+		p.load(getClass().getResourceAsStream("/test.properties"));
+		url = p.getProperty("url");
 		cli = Client.getInstance();
-		user = "root";
-		password = "bayeos";
-		cli.connect(url,user,password);
+		user = p.getProperty("user");
+		password = p.getProperty("password");
+		cli.connect(url,user ,password );
 	}
 
 	public void tearDown() throws XmlRpcException {

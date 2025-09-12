@@ -24,7 +24,7 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.unibayreuth.bayceer.bayeos.objekt.ObjektArt;
+import de.unibayreuth.bayceer.bayeos.objekt.Art;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.ConnectionPool;
 import de.unibayreuth.bayceer.bayeos.xmlrpc.handler.inf.IToolsHandler;
 
@@ -76,9 +76,9 @@ public class ToolsHandler extends AccessHandler implements IToolsHandler {
         // create prepared statement 
         logger.debug("updateRows(" + id + "," + art + "," + statusId + ")" );
         con = getPooledConnection();
-        if (art.equalsIgnoreCase(ObjektArt.MESSUNG_MASSENDATEN.toString())) {
+        if (art.equalsIgnoreCase(Art.MESSUNG_MASSENDATEN)) {
         sql = "update massendaten set status = ? where id = ? and von > ? and von <= ?";
-        } else if (art.equalsIgnoreCase(ObjektArt.MESSUNG_LABORDATEN.toString())){
+        } else if (art.equalsIgnoreCase(Art.MESSUNG_LABORDATEN)){
         sql = "update labordaten set status = ? where id = ? and bis > ? and bis <= ?";
         } else {
           throw new IllegalArgumentException("Unkown ObjektArt: " + art);

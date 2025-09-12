@@ -1,18 +1,47 @@
 package de.unibayreuth.bayceer.bayeos.client;
 
+import java.util.Properties;
+
 import org.apache.xmlrpc.XmlRpcException;
 
 import junit.framework.TestCase;
 
-public class ConnectTest  extends TestCase {
-	 
-	public String user = "root";
-	public String password = "bayeos";
-	public String url = "http://localhost:5532/XMLServlet";
+public class ConnectTest   extends TestCase {
 	
+	public String url;
+	public String user;
+	public String password;
+	public Client c;
+
+	Properties p = new Properties();
+	
+	 
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+	
+		p.load(getClass().getResourceAsStream("/test.properties"));
+		url = p.getProperty("url");
+		c = Client.getInstance();		
+		password = p.getProperty("password");
+		user = p.getProperty("user");
+		
+	}
+	
+	@Override
+	protected void tearDown() throws Exception {
+		// TODO Auto-generated method stub
+		super.tearDown();
+		
+		if (c.isConnected()) {
+			c.close();	
+		}
+		
+		
+	}
 	
 	public void testWrongUser(){		
-		Client c =Client.getInstance();		
+				
 	    try {
 			c.connect(url,"asdf","false");
 			fail();
@@ -24,7 +53,7 @@ public class ConnectTest  extends TestCase {
 	
 	
 	public void testWrongPassWord(){		
-		Client c =Client.getInstance();		
+				
 	    try {
 			c.connect(url,user,"wrong");
 			fail();
@@ -36,7 +65,7 @@ public class ConnectTest  extends TestCase {
 	
 	
 	public void testEmptyPassWord(){		
-		Client c =Client.getInstance();		
+				
 	    try {
 			c.connect(url,user,"");
 			fail();
@@ -48,18 +77,12 @@ public class ConnectTest  extends TestCase {
 
 	
 	public void testDefaultPassWord(){		
-		Client c =Client.getInstance();		
+				
 	    try {
 			c.connect(url,user,password);			
 		} catch (XmlRpcException e) {			
 			fail();
-		} finally {
-			try {
-				c.close();
-			} catch (XmlRpcException e) {				
-				fail(e.getMessage());
-			}
-		}
+		} 
 		
 	}
 

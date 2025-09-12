@@ -1,6 +1,8 @@
 package de.unibayreuth.bayceer.bayeos.xmlprc.handler;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.Random;
 import java.util.Vector;
 
 import org.junit.Ignore;
@@ -11,7 +13,7 @@ import de.unibayreuth.bayceer.bayeos.client.NodeTest;
 public class TestMassendatenHandlerIT extends NodeTest {
 	
 	
-	@Ignore @Test
+	@Test
 	public void testAddUpsertSingle() throws Exception {
 		Vector v = new Vector();
 		v.add(testNode.getId());
@@ -51,7 +53,7 @@ public class TestMassendatenHandlerIT extends NodeTest {
 	
 			
 	
-	@Ignore @Test
+	@Test
 	public void testAddUpsertMany() throws Exception {						
 		// Create Payload 
 		ByteBuffer bb = ByteBuffer.allocate(16);
@@ -97,7 +99,7 @@ public class TestMassendatenHandlerIT extends NodeTest {
 		bb.clear();								
 	}
 	
-	@Ignore @Test
+	@Test
 	public void testUpsert() throws Exception {
 		
 		
@@ -137,7 +139,7 @@ public class TestMassendatenHandlerIT extends NodeTest {
 
 	}
 	
-	@Ignore @Test
+	@Test
 	public void testInsert() throws Exception {
 		ByteBuffer bb = ByteBuffer.allocate(48);
 		bb.putInt(testNode.getId()); // 4		
@@ -174,7 +176,7 @@ public class TestMassendatenHandlerIT extends NodeTest {
 	}
 	 
 	 
-	@Ignore @Test
+	@Test
 	public void testAddByteRows() throws Exception {
 		
 		
@@ -208,6 +210,32 @@ public class TestMassendatenHandlerIT extends NodeTest {
 		assertEquals(0,bb.get());
 
 		
+	}
+	
+	@Test
+	public void testAddByteRowsVolume() throws Exception {		
+		Integer id = 200108;
+				
+		
+		
+		Long start = new Date().getTime();		
+		ByteBuffer b = ByteBuffer.allocate(1000*16);
+		for(int c=0;c<10*1000;c++){
+			System.out.println("c:"+ c);
+			for(int i=0;i<1000;i++){
+				b.putInt(id);			
+				b.putLong(start);
+				start = start + 1000;
+				b.putFloat(new Random().nextFloat()*100);
+			}					
+			Object[] a = new Object[1];
+			a[0] = b.array();				
+			cli.getXmlRpcClient().execute("MassenTableHandler.addByteRows",a);
+			b.rewind();
+		}
+		
+	
+
 	}
 	
 
