@@ -13,7 +13,7 @@ Main characteristics
 
 ### Prerequisites
 
-- Debian 11 (bullseye)
+- Debian {11|12|13}
 - Root login
 
 ### Installation
