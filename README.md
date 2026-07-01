@@ -53,6 +53,9 @@ Main characteristics
 - [XML-RPC](http://bayceer.github.io/bayeos-xmlrpc/apidocs/)
 
 ## History
+### Version 2.3.0, June 30, 2026
+- XML-RPC Version upgrade
+
 ### Version 2.2.0, Sept 12, 2025
 - XML-RPC Version upgrade
 
